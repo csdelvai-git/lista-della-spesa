@@ -139,3 +139,22 @@ RLS, non dalla segretezza della chiave, come già chiarito in D-017).
 
 `poc/config.js` resta versionato come da D-017 e non viene modificato:
 quella scelta era e resta esplicitamente limitata al PoC.
+
+### D-020 --- Specializzazione progressiva nella lista
+
+Nella voce di lista il meta-articolo è sempre sufficiente da solo;
+articolo e formato restano opzionali, specializzabili in un secondo
+momento o mai. Coerente con D-001, D-002, D-003 e con
+DOMAIN_MODEL.md ("L'utente può fermarsi al livello desiderato").
+
+### D-021 --- Coerenza associazioni voce lista garantita a livello applicativo
+
+Il database non impone vincoli che forzino l'articolo scelto in una
+voce lista a essere effettivamente associato al meta-articolo (né il
+formato all'articolo). La coerenza è garantita dalla logica
+applicativa/UI tramite selezioni filtrate (vedi D-020), non da
+constraint o trigger a livello database.
+
+Motivazione: evitare vincoli DB complessi non richiesti per l'MVP
+(CLAUDE.md: evitare over-engineering); da rivalutare se in futuro
+emergono percorsi di scrittura diretta al database che bypassano la UI.
