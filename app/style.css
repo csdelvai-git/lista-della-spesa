@@ -6,6 +6,23 @@ body {
   color: #222;
 }
 
+.app-nav {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.app-nav a {
+  color: #666;
+  text-decoration: none;
+}
+
+.app-nav a[aria-current="page"] {
+  color: #222;
+  font-weight: 600;
+}
+
 h1 {
   font-size: 1.4rem;
   margin-bottom: 0.25rem;
@@ -70,4 +87,40 @@ ul {
 
 #relations-container {
   font-size: 0.9rem;
+}
+
+#form-nuova-voce {
+  margin-bottom: 1.5rem;
+}
+
+#lista-voci {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.voce-lista {
+  padding: 0.75rem;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.voce-titolo {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.voce-controlli {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.voce-controlli select,
+.voce-controlli input {
+  flex: 1;
+  min-width: 7rem;
+  padding: 0.35rem;
+  font-size: 0.85rem;
 }

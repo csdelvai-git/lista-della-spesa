@@ -31,6 +31,22 @@ export async function loadArticles(selectEls = []) {
   return items;
 }
 
+// Fase 2 (Lista della spesa): articoli associati a un meta-articolo,
+// per la specializzazione progressiva filtrata (D-020/D-021) — non
+// l'elenco completo del catalogo.
+export async function fetchArticlesForMetaArticle(metaArticleId) {
+  const { data, error } = await supabase
+    .from('article_meta_articles')
+    .select('articles(id, name)')
+    .eq('meta_article_id', metaArticleId);
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+  return (data || []).map((row) => row.articles).filter(Boolean);
+}
+
 export async function createArticle(name) {
   const { error } = await supabase.from('articles').insert({ name });
 

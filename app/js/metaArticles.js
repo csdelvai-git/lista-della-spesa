@@ -43,3 +43,41 @@ export async function loadMetaArticles(listEl, selectEls = []) {
   for (const selectEl of selectEls) populateMetaArticleSelect(selectEl, items);
   return items;
 }
+
+// Fase 2 (Lista della spesa): creazione "al volo" se il meta-articolo
+// non esiste ancora — la lista non deve dipendere dalla manutenzione
+// del catalogo (decisione 7.b).
+export async function findOrCreateMetaArticle(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('meta_articles')
+    .select('id, name')
+    .ilike('name', trimmed)
+    .limit(1);
+
+  if (fetchError) {
+    alert(`Errore ricerca meta-articolo: ${fetchError.message}`);
+    console.error(fetchError);
+    return null;
+  }
+
+  if (existing && existing.length > 0) {
+    return existing[0].id;
+  }
+
+  const { data: created, error: insertError } = await supabase
+    .from('meta_articles')
+    .insert({ name: trimmed })
+    .select('id')
+    .single();
+
+  if (insertError) {
+    alert(`Errore creazione meta-articolo: ${insertError.message}`);
+    console.error(insertError);
+    return null;
+  }
+
+  return created.id;
+}

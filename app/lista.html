@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista della spesa — Assistente alla spesa</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="app-nav">
+    <a href="index.html">Catalogo</a>
+    <a href="lista.html" aria-current="page">Lista della spesa</a>
+  </nav>
+
+  <h1 id="nome-lista">Lista della spesa</h1>
+  <p class="subtitle">
+    Incremento Fase 2 — lista-first, con specializzazione progressiva
+    opzionale meta-articolo → articolo → formato
+  </p>
+
+  <form id="form-nuova-voce">
+    <input
+      type="text"
+      id="input-nuovo-meta"
+      placeholder="Cosa ti serve? (es. Tonno)"
+      required
+    >
+    <button type="submit">Aggiungi</button>
+  </form>
+
+  <ul id="lista-voci"></ul>
+
+  <p id="stato" class="subtitle">Inizializzazione...</p>
+
+  <script type="module" src="lista.js"></script>
+</body>
+</html>
