@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8000", "--directory", "poc"],
       "port": 8000
+    },
+    {
+      "name": "app-static-server",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8001", "--directory", "app"],
+      "port": 8001
     }
   ]
 }

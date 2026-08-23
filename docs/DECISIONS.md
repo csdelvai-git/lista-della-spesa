@@ -123,3 +123,19 @@ multi-browser.
 #### Stato
 
 Confermata per MVP.
+
+### D-019 --- Config Supabase non versionata in app/ (revisione di D-017)
+
+A differenza del PoC (`poc/config.js`, D-017), per l'incremento in
+`app/` (Fase 1 — UI catalogo) `app/config.js` **non è versionato**: è
+escluso da git (vedi `.gitignore`) e va creato localmente a partire da
+`app/config.example.js`, che resta versionato come riferimento.
+
+Motivazione: iniziare da subito le pratiche che si vorranno mantenere
+via via che il codice in `app/` evolve verso l'applicazione definitiva
+— indipendentemente dal fatto che l'anon/publishable key non sia di
+per sé un segreto (la sicurezza resta comunque garantita dalle policy
+RLS, non dalla segretezza della chiave, come già chiarito in D-017).
+
+`poc/config.js` resta versionato come da D-017 e non viene modificato:
+quella scelta era e resta esplicitamente limitata al PoC.
