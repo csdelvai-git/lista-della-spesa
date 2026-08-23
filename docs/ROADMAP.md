@@ -15,20 +15,16 @@ operativo validato; - CRUD base su meta_articles funzionante.
 
 ## Fase 1 --- Catalogo
 
-**Stato: IN CORSO**
+**Stato: COMPLETATA**
 
 Implementazione: - meta-articoli; - articoli; - formati; - associazioni.
 
 Completato: - definizione schema dati; - tabella articles; - tabella
 formats; - relazione article_meta_articles; - verifica relazioni
-tramite test SQL.
-
-Da completare: - eventuale interfaccia gestione catalogo; - CRUD
-frontend catalogo.
-
-*(Nota: l'interfaccia minima di gestione catalogo è stata realizzata
-in `app/` insieme al primo incremento della Fase 2 — stato di questa
-sezione da riallineare.)*
+tramite test SQL; - interfaccia minima di gestione catalogo in `app/`
+(visualizzazione meta-articoli, creazione articolo, associazione
+articolo↔meta-articolo, creazione formato, vista relazioni) verificata
+end-to-end.
 
 ## Fase 2 --- Lista della spesa
 
