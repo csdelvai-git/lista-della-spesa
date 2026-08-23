@@ -36,8 +36,12 @@ frontend vale solo per questa fase (vedi DECISIONS.md).
 
 2. Apri `config.js` e inserisci i valori copiati da Supabase.
 
-`config.js` è escluso da git (vedi `.gitignore` nella root del
-repository): non verrà mai pubblicato.
+Per il solo PoC, `config.js` **è versionato** (vedi D-017 in
+DECISIONS.md): contiene solo URL e anon/publishable key, pensati per
+essere pubblici nel codice servito al browser — la sicurezza è
+garantita dalle policy RLS su `meta_articles`, non dalla segretezza
+della chiave. Non ci va mai inserita la password del database né la
+service_role key.
 
 ## 3. Test locale
 
@@ -57,17 +61,15 @@ eliminazione ed elenco dei meta-articoli.
 Passi (da eseguire solo dopo conferma esplicita, trattandosi di
 operazioni verso l'esterno):
 
-1. `git init` nella root del repository (se non già fatto).
-2. Commit di tutti i file **tranne** `poc/config.js`.
-3. Push su un repository GitHub pubblico.
-4. Attivazione di GitHub Pages puntando alla cartella `poc/` (o al
-   branch dedicato, da definire in fase di attivazione).
-5. Poiché `config.js` non è versionato, va creato manualmente anche
-   nell'ambiente pubblicato — per il PoC è sufficiente committare una
-   versione con i valori reali in un commit separato e chiaramente
-   identificabile, oppure valutare in quel momento un'alternativa
-   (da concordare, non contiene dati personali/sensibili: solo URL e
-   anon key protetta da RLS).
+1. `git init` nella root del repository.
+2. Commit di tutti i file (incluso `poc/config.js`, per il solo PoC —
+   vedi D-017).
+3. Push su un repository GitHub pubblico via deploy key SSH dedicata
+   al repository.
+4. Attivazione di GitHub Pages con sorgente **GitHub Actions** (non
+   "Deploy from a branch", che non supporta una sottocartella come
+   `poc/` senza entrare in conflitto con `docs/`), tramite il workflow
+   `.github/workflows/deploy-pages.yml`.
 
 ## Criteri di successo (da TECH_SPEC.md §8)
 

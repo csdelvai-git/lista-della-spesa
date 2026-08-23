@@ -84,3 +84,23 @@ Esempi: - Meta-articolo → meta_articles - Articolo → articles - Formato
 
 Motivazione: - compatibilità con strumenti software; - convenzioni
 database; - maggiore interoperabilità.
+
+### D-017 --- Config Supabase versionata nel PoC (scelta limitata al PoC)
+
+Per il solo PoC tecnico, `poc/config.js` (URL + anon/publishable key
+Supabase) viene committato nel repository pubblico, invece di essere
+escluso via `.gitignore`.
+
+Motivazione: GitHub Pages non ha un backend/build per iniettare
+variabili d'ambiente, quindi in un sito statico puro l'URL e la
+anon/publishable key finirebbero comunque nel JavaScript servito al
+browser. Non si tratta di una chiave "protetta da RLS", ma di una
+chiave resa utilizzabile in sicurezza dal modello Supabase tramite RLS:
+è prevista pubblica (chiunque può leggerla nel codice del browser); la
+sicurezza è garantita dalle policy di Row Level Security su
+`meta_articles`, non dalla segretezza della chiave.
+
+Vincoli: - non versionare mai la password del database né la
+service_role key; - RLS resta sempre attiva sulle tabelle. - Questa
+scelta vale solo per il PoC. Per l'applicazione definitiva va rivista
+(es. gestione multiutente, policy più restrittive, eventuale backend).
