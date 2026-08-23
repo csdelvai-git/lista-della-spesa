@@ -288,7 +288,8 @@ Architettura candidata:
       |
     PostgreSQL + Storage immagini
 
-Supabase sarà validato tramite PoC.
+Supabase validato tramite PoC tecnico (Fase 0, completato il
+24/08/2026) — vedi D-018 in DECISIONS.md e `poc/README.md`.
 
 ------------------------------------------------------------------------
 
