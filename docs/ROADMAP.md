@@ -5,12 +5,26 @@
 
 ## Fase 0 --- PoC tecnico
 
+**Stato: COMPLETATA**
+
 Validazione stack: - GitHub; - frontend statico; - Supabase; -
 database; - CRUD minimale.
 
+Risultato: - GitHub Pages validato; - Supabase validato; - PostgreSQL
+operativo validato; - CRUD base su meta_articles funzionante.
+
 ## Fase 1 --- Catalogo
 
+**Stato: IN CORSO**
+
 Implementazione: - meta-articoli; - articoli; - formati; - associazioni.
+
+Completato: - definizione schema dati; - tabella articles; - tabella
+formats; - relazione article_meta_articles; - verifica relazioni
+tramite test SQL.
+
+Da completare: - eventuale interfaccia gestione catalogo; - CRUD
+frontend catalogo.
 
 ## Fase 2 --- Lista della spesa
 
