@@ -26,10 +26,29 @@ tramite test SQL.
 Da completare: - eventuale interfaccia gestione catalogo; - CRUD
 frontend catalogo.
 
+*(Nota: l'interfaccia minima di gestione catalogo è stata realizzata
+in `app/` insieme al primo incremento della Fase 2 — stato di questa
+sezione da riallineare.)*
+
 ## Fase 2 --- Lista della spesa
+
+**Stato: IN CORSO**
 
 Implementazione: - lista-first; - voce lista; - specializzazione
 progressiva; - vincoli; - stati.
+
+Completato (primo incremento): - schema shopping_lists e
+shopping_list_items (RLS attiva, policy permissive); - lista di
+default creata automaticamente; - creazione voce da meta-articolo,
+creato al volo se non esiste; - specializzazione progressiva
+articolo/formato filtrata sulle associazioni di catalogo esistenti; -
+gestione quantità, unità di misura e nota libera; - vincoli
+LIBERO/PREFERITO/OBBLIGATORIO; - stati DA_ACQUISTARE/NEL_CARRELLO/
+ACQUISTATO/CANCELLATO con transizione libera; - interfaccia in `app/`
+verificata end-to-end.
+
+Da completare: - gestione multi-lista (creazione, rinomina, più liste
+attive — rimandata, vedi DECISIONS.md); - eventuali affinamenti UX.
 
 ## Fase 3 --- Acquisizione prezzi
 
