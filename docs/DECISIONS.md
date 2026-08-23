@@ -105,13 +105,21 @@ service_role key; - RLS resta sempre attiva sulle tabelle. - Questa
 scelta vale solo per il PoC. Per l'applicazione definitiva va rivista
 (es. gestione multiutente, policy più restrittive, eventuale backend).
 
-### D-018 --- Supabase/PostgreSQL validato dal PoC
+### D-018 --- Validazione architettura backend
 
-Il PoC tecnico (Fase 0, completato il 24/08/2026) ha validato la
-catena GitHub Pages → Frontend → Supabase → PostgreSQL con CRUD
-completo su `meta_articles`, RLS attiva, dati persistenti e accesso da
-browser diversi. Dettagli in `poc/README.md`.
+#### Decisione
 
-Supabase/PostgreSQL non è più solo "candidato" (PRD.md §7-8,
-TECH_SPEC.md §4): è il database operativo validato per il proseguo
-dello sviluppo, a partire dalla Fase 1 (Catalogo).
+Il PoC tecnico ha validato:
+
+-   GitHub Pages come hosting frontend statico;
+-   Supabase come backend managed;
+-   PostgreSQL come database operativo.
+
+#### Motivazione
+
+La catena tecnica è risultata funzionante con accesso persistente e
+multi-browser.
+
+#### Stato
+
+Confermata per MVP.
