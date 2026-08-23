@@ -35,13 +35,14 @@ Le istruzioni per Claude Code sono contenute in:
 
 Fase attuale:
 
-**Analisi e preparazione tecnica**
+**PoC tecnico completato** — https://csdelvai-git.github.io/lista-della-spesa/
+(codice in `poc/`, dettagli in `poc/README.md`)
 
 Prossimo obiettivo:
 
-**PoC GitHub Pages + Supabase**
+**Fase 1 — Catalogo** (vedi `docs/ROADMAP.md`)
 
-Il PoC dovrà validare:
+Il PoC ha validato:
 
     GitHub Pages
           |

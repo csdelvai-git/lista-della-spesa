@@ -73,8 +73,13 @@ operazioni verso l'esterno):
 
 ## Criteri di successo (da TECH_SPEC.md §8)
 
-- [ ] Applicazione pubblicata e raggiungibile via URL GitHub Pages.
-- [ ] Dati persistenti tra sessioni/refresh.
-- [ ] Accesso funzionante da browser diversi.
-- [ ] Repository versionato.
-- [ ] Configurazione riproducibile (questo README).
+- [x] Applicazione pubblicata e raggiungibile via URL GitHub Pages:
+      https://csdelvai-git.github.io/lista-della-spesa/
+- [x] Dati persistenti tra sessioni/refresh.
+- [x] Accesso funzionante da browser diversi.
+- [x] Repository versionato:
+      https://github.com/csdelvai-git/lista-della-spesa
+- [x] Configurazione riproducibile (questo README).
+
+**PoC validato il 24/08/2026.** CRUD completo (create/read/update/delete)
+verificato sia in locale sia sul sito pubblicato in produzione.
