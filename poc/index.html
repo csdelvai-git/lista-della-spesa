@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoC — Meta-articoli</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>PoC — Meta-articoli</h1>
+  <p class="subtitle">
+    Validazione tecnica: GitHub Pages → Frontend → Supabase → PostgreSQL
+  </p>
+
+  <form id="form-nuovo">
+    <input
+      type="text"
+      id="input-nome"
+      placeholder="Nome meta-articolo (es. Tonno)"
+      required
+    >
+    <button type="submit">Aggiungi</button>
+  </form>
+
+  <p id="stato-connessione">Inizializzazione...</p>
+
+  <ul id="lista-meta-articoli"></ul>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
