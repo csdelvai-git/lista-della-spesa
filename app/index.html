@@ -69,6 +69,11 @@
           <button type="submit">Aggiungi formato</button>
         </form>
       </div>
+
+      <div class="colonna">
+        <h3>Prezzi</h3>
+        <div id="colonna-prezzi" class="colonna-corpo"></div>
+      </div>
     </div>
 
     <div id="barra-azioni" class="barra-azioni"></div>
@@ -81,6 +86,31 @@
       meta-articoli (relazione N:M).
     </p>
     <div id="relations-container"></div>
+  </section>
+
+  <section>
+    <h2>Supermercati</h2>
+    <form id="form-nuovo-supermercato">
+      <input
+        type="text"
+        id="input-nome-supermercato"
+        placeholder="Nome supermercato"
+        required
+      >
+      <button type="submit">Crea supermercato</button>
+    </form>
+    <ul id="supermarkets-list"></ul>
+  </section>
+
+  <section>
+    <h2>Rilevazioni registrate</h2>
+    <p class="subtitle">
+      Incremento di test (Fase 3.1) — inserimento manuale di un prezzo
+      indicativo mentre curi il catalogo (top-down); niente foto,
+      Storage, OCR o revisione qui. Per registrarne una, seleziona un
+      formato qui sopra.
+    </p>
+    <ul id="rilevazioni-list"></ul>
   </section>
 
   <p id="stato" class="subtitle"></p>

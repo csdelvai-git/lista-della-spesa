@@ -5,17 +5,25 @@
 // della profondità di specializzazione).
 //
 // Il modulo si occupa solo di navigazione/selezione: non conosce le
-// azioni (crea/rinomina/elimina), lasciate al chiamante tramite
-// onSelectionChange + refresh espliciti dopo ogni mutazione.
+// azioni di dominio (crea/rinomina/elimina), lasciate al chiamante
+// tramite onSelectionChange + refresh espliciti dopo ogni mutazione.
+//
+// Colonna prezzi (priceColumnEl, facoltativa): sola visibilità dei
+// prezzi già registrati per il formato selezionato, non un'azione —
+// utile sia in Catalogo (dati aggiornati?) sia in Lista (dove
+// comprare oggi). Se il chiamante non la passa, il componente si
+// comporta come prima (3 colonne).
 
 import { fetchMetaArticles } from './metaArticles.js';
 import { fetchArticlesForMetaArticle } from './articles.js';
 import { fetchFormatsForArticle } from './formats.js';
+import { fetchPriceObservationsForFormat } from './priceObservations.js';
 
 export function createColumnBrowser({
   metaColumnEl,
   articleColumnEl,
   formatColumnEl,
+  priceColumnEl,
   onSelectionChange,
   metaFilter,
   metaLabelSuffix,
@@ -23,6 +31,7 @@ export function createColumnBrowser({
   let metaItems = [];
   let articleItems = [];
   let formatItems = [];
+  let priceItems = [];
   let selection = { metaArticle: null, article: null, format: null };
 
   function notify() {
@@ -77,6 +86,48 @@ export function createColumnBrowser({
       selectFormat,
       selection.article ? 'Nessun formato' : 'Seleziona un articolo'
     );
+    renderPriceColumn();
+  }
+
+  // Colonna prezzi (facoltativa): sola visibilità, nessuna selezione.
+  // Non e' un'azione di dominio (crea/rinomina/elimina) ma lettura
+  // dei prezzi gia' registrati per il formato selezionato — utile sia
+  // in Catalogo (dati aggiornati?) sia in Lista (dove comprare oggi).
+  function renderPriceColumn() {
+    if (!priceColumnEl) return;
+    priceColumnEl.innerHTML = '';
+
+    if (!selection.format) {
+      const empty = document.createElement('p');
+      empty.className = 'colonna-vuota';
+      empty.textContent = 'Seleziona un formato';
+      priceColumnEl.appendChild(empty);
+      return;
+    }
+
+    if (priceItems.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'colonna-vuota';
+      empty.textContent = 'Nessun prezzo registrato';
+      priceColumnEl.appendChild(empty);
+      return;
+    }
+
+    const list = document.createElement('ul');
+    for (const item of priceItems) {
+      const li = document.createElement('li');
+      const supermercato = item.supermarkets?.name ?? '(supermercato non disponibile)';
+      const data = new Date(item.observed_at).toLocaleDateString('it-IT');
+      li.textContent = `${supermercato} — €${item.package_price} — ${data}`;
+      list.appendChild(li);
+    }
+    priceColumnEl.appendChild(list);
+  }
+
+  async function refreshPrices() {
+    if (!priceColumnEl) return;
+    priceItems = selection.format ? await fetchPriceObservationsForFormat(selection.format.id) : [];
+    renderPriceColumn();
   }
 
   function selectMeta(metaArticle) {
@@ -101,6 +152,7 @@ export function createColumnBrowser({
     selection.format = format;
     renderAll();
     notify();
+    refreshPrices();
   }
 
   async function refreshMeta() {
@@ -135,6 +187,7 @@ export function createColumnBrowser({
     if (!selection.article) {
       formatItems = [];
       renderAll();
+      await refreshPrices();
       return;
     }
     formatItems = await fetchFormatsForArticle(selection.article.id);
@@ -143,6 +196,7 @@ export function createColumnBrowser({
       notify();
     }
     renderAll();
+    await refreshPrices();
   }
 
   async function refreshAllColumns() {
@@ -159,6 +213,7 @@ export function createColumnBrowser({
     refreshMeta,
     refreshArticles,
     refreshFormats,
+    refreshPrices,
     refreshAll: refreshAllColumns,
     getSelection,
   };

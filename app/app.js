@@ -14,6 +14,8 @@ import { createAssociation, deleteAssociation } from './js/associations.js';
 import { createFormat, updateFormat, setFormatStatus, deleteFormat } from './js/formats.js';
 import { loadRelations } from './js/relations.js';
 import { createColumnBrowser } from './js/columnBrowser.js';
+import { fetchSupermarkets, createSupermarket } from './js/supermarkets.js';
+import { fetchPriceObservations, createPriceObservation } from './js/priceObservations.js';
 
 const metaArticleForm = document.getElementById('form-nuovo-meta-articolo');
 const metaArticleNameInput = document.getElementById('input-nome-meta-articolo');
@@ -21,6 +23,7 @@ const metaArticleNameInput = document.getElementById('input-nome-meta-articolo')
 const colonnaMeta = document.getElementById('colonna-meta');
 const colonnaArticoli = document.getElementById('colonna-articoli');
 const colonnaFormati = document.getElementById('colonna-formati');
+const colonnaPrezzi = document.getElementById('colonna-prezzi');
 
 const formAssociaEsistente = document.getElementById('form-associa-esistente');
 const selectAssociaEsistente = document.getElementById('select-associa-esistente');
@@ -32,12 +35,19 @@ const inputNuovoFormato = document.getElementById('input-nuovo-formato');
 
 const barraAzioni = document.getElementById('barra-azioni');
 const relationsContainer = document.getElementById('relations-container');
+
+const supermarketForm = document.getElementById('form-nuovo-supermercato');
+const supermarketNameInput = document.getElementById('input-nome-supermercato');
+const supermarketsList = document.getElementById('supermarkets-list');
+const rilevazioniList = document.getElementById('rilevazioni-list');
+
 const stato = document.getElementById('stato');
 
 const browser = createColumnBrowser({
   metaColumnEl: colonnaMeta,
   articleColumnEl: colonnaArticoli,
   formatColumnEl: colonnaFormati,
+  priceColumnEl: colonnaPrezzi,
   onSelectionChange: handleSelectionChange,
 });
 
@@ -48,6 +58,51 @@ function creaBottoneAzione(testo, onClick) {
   button.addEventListener('click', onClick);
   return button;
 }
+
+// Rilevazioni prezzo — incremento di test (Fase 3.1): inserimento
+// manuale top-down, mentre curi il catalogo. Niente foto/Storage/OCR
+// qui (quello sarà un flusso bottom-up separato, formato-first).
+
+async function refreshSupermarkets() {
+  const items = await fetchSupermarkets();
+  supermarketsList.innerHTML = '';
+  for (const item of items) {
+    const li = document.createElement('li');
+    li.textContent = item.name;
+    supermarketsList.appendChild(li);
+  }
+  return items;
+}
+
+function renderRilevazione(obs) {
+  const li = document.createElement('li');
+  let testo = obs.supermarkets?.name ?? '(supermercato non disponibile)';
+  if (obs.articles) testo += ` — ${obs.articles.name}`;
+  if (obs.formats) testo += ` (${obs.formats.name})`;
+  testo += ` — €${obs.package_price} — ${obs.status}`;
+  li.textContent = testo;
+  return li;
+}
+
+async function refreshRilevazioni() {
+  const items = await fetchPriceObservations();
+  rilevazioniList.innerHTML = '';
+  for (const item of items) {
+    rilevazioniList.appendChild(renderRilevazione(item));
+  }
+}
+
+supermarketForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const name = supermarketNameInput.value.trim();
+  if (!name) return;
+
+  const ok = await createSupermarket(name);
+  if (ok) {
+    supermarketNameInput.value = '';
+    await refreshSupermarkets();
+  }
+});
 
 async function refreshAssociateDropdown(metaArticleId) {
   const notAssociated = await fetchArticlesNotAssociatedWith(metaArticleId);
@@ -60,7 +115,7 @@ async function refreshAssociateDropdown(metaArticleId) {
   }
 }
 
-function renderBarraAzioni(selection) {
+async function renderBarraAzioni(selection) {
   barraAzioni.innerHTML = '';
 
   if (selection.format) {
@@ -86,6 +141,45 @@ function renderBarraAzioni(selection) {
         if (ok) await browser.refreshFormats();
       })
     );
+
+    // Prezzo indicativo (test, top-down): niente foto/Storage/OCR qui.
+    const supermarkets = await refreshSupermarkets();
+    const selectSupermercatoPrezzo = document.createElement('select');
+    selectSupermercatoPrezzo.innerHTML = '<option value="" disabled selected>Supermercato</option>';
+    for (const sm of supermarkets) {
+      const option = document.createElement('option');
+      option.value = sm.id;
+      option.textContent = sm.name;
+      selectSupermercatoPrezzo.appendChild(option);
+    }
+
+    const inputPrezzo = document.createElement('input');
+    inputPrezzo.type = 'number';
+    inputPrezzo.step = '0.01';
+    inputPrezzo.min = '0';
+    inputPrezzo.placeholder = 'Prezzo confezione (€)';
+
+    const btnRegistraPrezzo = creaBottoneAzione('Registra prezzo', async () => {
+      const supermarketId = selectSupermercatoPrezzo.value;
+      const price = inputPrezzo.value;
+      if (!supermarketId || !price) {
+        alert('Seleziona un supermercato e inserisci un prezzo.');
+        return;
+      }
+      const ok = await createPriceObservation({
+        supermarketId,
+        articleId: selection.article?.id,
+        formatId: selection.format.id,
+        packagePrice: Number(price),
+      });
+      if (ok) {
+        inputPrezzo.value = '';
+        await refreshRilevazioni();
+        await browser.refreshPrices();
+      }
+    });
+
+    barraAzioni.append(selectSupermercatoPrezzo, inputPrezzo, btnRegistraPrezzo);
     return;
   }
 
@@ -156,7 +250,7 @@ async function handleSelectionChange(selection) {
     await refreshAssociateDropdown(selection.metaArticle.id);
   }
 
-  renderBarraAzioni(selection);
+  await renderBarraAzioni(selection);
 }
 
 metaArticleForm.addEventListener('submit', async (event) => {
@@ -223,6 +317,8 @@ async function refreshAll() {
   stato.textContent = 'Aggiornamento...';
   await browser.refreshAll();
   await loadRelations(relationsContainer);
+  await refreshSupermarkets();
+  await refreshRilevazioni();
   stato.textContent = 'Connesso a Supabase.';
 }
 

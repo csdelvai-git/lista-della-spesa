@@ -20,6 +20,7 @@ const inputNuovoMetaLista = document.getElementById('input-nuovo-meta-lista');
 const colonnaMetaLista = document.getElementById('colonna-meta-lista');
 const colonnaArticoliLista = document.getElementById('colonna-articoli-lista');
 const colonnaFormatiLista = document.getElementById('colonna-formati-lista');
+const colonnaPrezziLista = document.getElementById('colonna-prezzi-lista');
 const riepilogoSelezione = document.getElementById('riepilogo-selezione');
 const btnAggiungiVoce = document.getElementById('btn-aggiungi-voce');
 const checkboxMostraTutti = document.getElementById('checkbox-mostra-tutti');
@@ -51,6 +52,7 @@ const browser = createColumnBrowser({
   metaColumnEl: colonnaMetaLista,
   articleColumnEl: colonnaArticoliLista,
   formatColumnEl: colonnaFormatiLista,
+  priceColumnEl: colonnaPrezziLista,
   onSelectionChange: handleSelectionChange,
   metaFilter: (item) => mostraTutti || !presentMetaArticleIds.has(item.id),
   metaLabelSuffix: (item) => (presentMetaArticleIds.has(item.id) ? ' (già in lista)' : ''),
