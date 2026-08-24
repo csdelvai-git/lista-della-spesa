@@ -53,6 +53,7 @@ const browser = createColumnBrowser({
   articleColumnEl: colonnaArticoliLista,
   formatColumnEl: colonnaFormatiLista,
   priceColumnEl: colonnaPrezziLista,
+  selectablePrices: true,
   onSelectionChange: handleSelectionChange,
   metaFilter: (item) => mostraTutti || !presentMetaArticleIds.has(item.id),
   metaLabelSuffix: (item) => (presentMetaArticleIds.has(item.id) ? ' (già in lista)' : ''),
@@ -78,6 +79,7 @@ function handleSelectionChange(selection) {
   let testo = `Selezionato: ${selection.metaArticle.name}`;
   if (selection.article) testo += ` → ${selection.article.name}`;
   if (selection.format) testo += ` → ${selection.format.name}`;
+  if (selection.preferredSupermarket) testo += ` @ ${selection.preferredSupermarket.name}`;
   riepilogoSelezione.textContent = testo;
   btnAggiungiVoce.disabled = false;
 }
@@ -107,6 +109,7 @@ function renderItem(item) {
   let testo = item.meta_articles?.name ?? '(meta-articolo non disponibile)';
   if (item.articles) testo += ` → ${item.articles.name}`;
   if (item.formats) testo += ` → ${item.formats.name}`;
+  if (item.supermarkets) testo += ` @ ${item.supermarkets.name}`;
   titolo.textContent = testo;
   li.appendChild(titolo);
 
@@ -214,6 +217,7 @@ btnAggiungiVoce.addEventListener('click', async () => {
   const ok = await createListItem(currentListId, selection.metaArticle.id, {
     articleId: selection.article?.id,
     formatId: selection.format?.id,
+    preferredSupermarketId: selection.preferredSupermarket?.id,
   });
 
   if (ok) {

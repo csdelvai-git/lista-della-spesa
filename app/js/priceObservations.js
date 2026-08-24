@@ -20,7 +20,7 @@ export async function fetchPriceObservations() {
 export async function fetchPriceObservationsForFormat(formatId) {
   const { data, error } = await supabase
     .from('price_observations')
-    .select('id, package_price, status, observed_at, supermarkets(name)')
+    .select('id, package_price, status, observed_at, supermarket_id, supermarkets(name)')
     .eq('format_id', formatId)
     .order('observed_at', { ascending: false });
 

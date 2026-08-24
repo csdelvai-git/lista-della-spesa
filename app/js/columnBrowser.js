@@ -13,6 +13,12 @@
 // utile sia in Catalogo (dati aggiornati?) sia in Lista (dove
 // comprare oggi). Se il chiamante non la passa, il componente si
 // comporta come prima (3 colonne).
+//
+// selectablePrices (facoltativo, default false): in Lista una riga
+// prezzo è cliccabile per fissare selection.preferredSupermarket —
+// solo il supermercato di quella rilevazione, mai la rilevazione
+// stessa (D-028: la lista salva una preferenza, non un legame a
+// price_observations). In Catalogo resta sola lettura (default).
 
 import { fetchMetaArticles } from './metaArticles.js';
 import { fetchArticlesForMetaArticle } from './articles.js';
@@ -24,6 +30,7 @@ export function createColumnBrowser({
   articleColumnEl,
   formatColumnEl,
   priceColumnEl,
+  selectablePrices = false,
   onSelectionChange,
   metaFilter,
   metaLabelSuffix,
@@ -32,7 +39,7 @@ export function createColumnBrowser({
   let articleItems = [];
   let formatItems = [];
   let priceItems = [];
-  let selection = { metaArticle: null, article: null, format: null };
+  let selection = { metaArticle: null, article: null, format: null, preferredSupermarket: null };
 
   function notify() {
     if (onSelectionChange) onSelectionChange(selection);
@@ -119,19 +126,48 @@ export function createColumnBrowser({
       const supermercato = item.supermarkets?.name ?? '(supermercato non disponibile)';
       const data = new Date(item.observed_at).toLocaleDateString('it-IT');
       li.textContent = `${supermercato} — €${item.package_price} — ${data}`;
+      if (selectablePrices) {
+        if (selection.preferredSupermarket?.id === item.supermarket_id) {
+          li.classList.add('selezionato');
+        }
+        li.addEventListener('click', () => selectPreferredSupermarket(item));
+      }
       list.appendChild(li);
     }
     priceColumnEl.appendChild(list);
   }
 
+  // Selezionare una riga fissa solo il supermercato (preferenza), mai
+  // la rilevazione: cliccare la stessa riga due volte annulla la
+  // scelta. Nessuna scrittura qui — solo stato/selezione, come per le
+  // altre colonne (D-028: la scrittura di preferred_supermarket_id
+  // resta a carico del chiamante, in fase di aggiunta/modifica voce).
+  function selectPreferredSupermarket(item) {
+    const stessoSupermercato = selection.preferredSupermarket?.id === item.supermarket_id;
+    selection.preferredSupermarket = stessoSupermercato
+      ? null
+      : { id: item.supermarket_id, name: item.supermarkets?.name };
+    renderPriceColumn();
+    notify();
+  }
+
   async function refreshPrices() {
     if (!priceColumnEl) return;
-    priceItems = selection.format ? await fetchPriceObservationsForFormat(selection.format.id) : [];
+    if (!selection.format) {
+      priceItems = [];
+      if (selection.preferredSupermarket) {
+        selection.preferredSupermarket = null;
+        notify();
+      }
+      renderPriceColumn();
+      return;
+    }
+    priceItems = await fetchPriceObservationsForFormat(selection.format.id);
     renderPriceColumn();
   }
 
   function selectMeta(metaArticle) {
-    selection = { metaArticle, article: null, format: null };
+    selection = { metaArticle, article: null, format: null, preferredSupermarket: null };
     articleItems = [];
     formatItems = [];
     renderAll();
@@ -150,6 +186,7 @@ export function createColumnBrowser({
 
   function selectFormat(format) {
     selection.format = format;
+    selection.preferredSupermarket = null;
     renderAll();
     notify();
     refreshPrices();
@@ -159,7 +196,7 @@ export function createColumnBrowser({
     metaItems = await fetchMetaArticles();
     if (metaFilter) metaItems = metaItems.filter(metaFilter);
     if (selection.metaArticle && !metaItems.some((item) => item.id === selection.metaArticle.id)) {
-      selection = { metaArticle: null, article: null, format: null };
+      selection = { metaArticle: null, article: null, format: null, preferredSupermarket: null };
       articleItems = [];
       formatItems = [];
       notify();

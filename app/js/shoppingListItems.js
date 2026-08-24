@@ -24,7 +24,8 @@ export async function fetchListItems(listId) {
     .from('shopping_list_items')
     .select(
       'id, quantity, quantity_unit, note, constraint_type, status, ' +
-        'meta_articles(id, name), articles(id, name), formats(id, name)'
+        'meta_articles(id, name), articles(id, name), formats(id, name), ' +
+        'preferred_supermarket_id, supermarkets(name)'
     )
     .eq('shopping_list_id', listId)
     .order('created_at', { ascending: false });
@@ -36,12 +37,17 @@ export async function fetchListItems(listId) {
   return data;
 }
 
-export async function createListItem(listId, metaArticleId, { articleId, formatId } = {}) {
+export async function createListItem(
+  listId,
+  metaArticleId,
+  { articleId, formatId, preferredSupermarketId } = {}
+) {
   const { error } = await supabase.from('shopping_list_items').insert({
     shopping_list_id: listId,
     meta_article_id: metaArticleId,
     article_id: articleId ?? null,
     format_id: formatId ?? null,
+    preferred_supermarket_id: preferredSupermarketId ?? null,
   });
 
   if (error) {
