@@ -210,3 +210,15 @@ password del database né la service_role key.
 
 `poc/` resta nel repository come riferimento storico, ma non è più il
 target di GitHub Pages.
+
+### D-026 --- Campo source non anticipa valori futuri (OCR)
+
+Il campo `source` di `price_observations` (origine della rilevazione)
+ha per ora un check constraint che ammette solo `'MANUALE'`. Non si
+anticipa `'OCR'` nel modello dati, anche se la Fase 4 lo introdurrà:
+il vincolo verrà allargato esplicitamente quando quella fase inizierà,
+non prima.
+
+Motivazione: evitare di anticipare nel modello dati funzionalità non
+ancora implementate (CLAUDE.md: "non sviluppare funzionalità future
+non richieste"), anche quando il valore è già previsto in ROADMAP.md.

@@ -78,8 +78,39 @@ ulteriore affinamento della distribuzione dello spazio.
 
 ## Fase 3 --- Acquisizione prezzi
 
+**Stato: IN CORSO**
+
 Implementazione: - fotografia cartellino; - rilevazioni; - revisione; -
 conferma/scarto.
+
+Suddivisa in incrementi:
+
+    3.1  schema + UI minima di inserimento manuale
+           ↓
+         validazione tecnica del dominio
+           ↓
+    3.2  foto + Storage
+           ↓
+    4    OCR
+
+Completato (3.1 — solo schema, UI non ancora implementata): - tabelle
+supermarkets e price_observations (RLS attiva, policy permissive); -
+supermarket_id obbligatorio sulla rilevazione; - article_id/format_id
+opzionali e indipendenti, stessa specializzazione progressiva di
+D-020/D-021 (una rilevazione può nascere senza classificazione,
+D-005); - package_price obbligatorio, normalized_price/normalized_unit
+opzionali (inseriti a mano, non calcolati); - barcode presente nello
+schema, fuori scope UI; - campo source, per ora solo valore 'MANUALE'
+ammesso (il constraint verrà allargato esplicitamente quando arriverà
+l'OCR in Fase 4, non anticipato ora); - stati ACQUISITA/
+DA_REVISIONARE/CONFERMATA/SCARTATA; - verificato con dati di test
+(inserimento con solo supermercato, con articolo, con formato e
+prezzo normalizzato; vincolo su source verificato anche in negativo).
+
+Da completare (3.1): - pagina app/prezzi.html; - gestione supermercati
+separata (nessuna creazione al volo, decisione 9.c).
+
+Rimandato: - foto cartellino e Storage (3.2); - OCR/AI (Fase 4).
 
 ## Fase 4 --- OCR e AI
 
