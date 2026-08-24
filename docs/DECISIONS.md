@@ -158,3 +158,33 @@ constraint o trigger a livello database.
 Motivazione: evitare vincoli DB complessi non richiesti per l'MVP
 (CLAUDE.md: evitare over-engineering); da rivalutare se in futuro
 emergono percorsi di scrittura diretta al database che bypassano la UI.
+
+### D-022 --- Meta-articolo: nessun lifecycle, cancellazione reale
+
+A differenza di articoli e formati (D-008, stati ATTIVO/DISMESSO), il
+meta-articolo non ha un lifecycle: "Elimina" nel Catalogo è una
+cancellazione reale (`DELETE`), non una dismissione.
+
+Motivazione: il meta-articolo non porta storico da preservare — i
+prezzi dipendono da articolo/formato, non da meta-articolo, e le liste
+della spesa sono a perdere (non storicizzate). Le associazioni con gli
+articoli vengono rimosse a cascata dal database; se il meta-articolo è
+ancora usato in una voce di lista attiva, l'eliminazione viene
+bloccata con un messaggio leggibile, non un crash.
+
+### D-023 --- Articoli e formati: Elimina e Dismetti restano azioni distinte
+
+Coerente con D-008: "Dismetti" (`status = DISMESSO`) resta il percorso
+standard che preserva lo storico. "Elimina" (cancellazione reale)
+resta comunque disponibile, per correggere errori di inserimento
+(duplicati, refusi mai utilizzati altrove) — bloccata con un messaggio
+leggibile se l'entità è ancora referenziata altrove.
+
+### D-024 --- Nessun vincolo di unicità su meta_article_id in shopping_list_items
+
+Più voci di lista possono riferirsi allo stesso meta-articolo (es. due
+marche diverse acquistate insieme); il database non lo ha mai
+impedito. L'interfaccia di aggiunta nasconde di default i
+meta-articoli già presenti in lista per evitare doppioni accidentali,
+con una checkbox "Mostra tutti" per il caso reale in cui servono più
+voci per lo stesso meta-articolo.

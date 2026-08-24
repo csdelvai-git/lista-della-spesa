@@ -12,3 +12,20 @@ export async function createAssociation(metaArticleId, articleId) {
   }
   return true;
 }
+
+// Rimuove solo il collegamento N:M — l'articolo resta nel catalogo,
+// eventualmente associato ad altri meta-articoli (D-002).
+export async function deleteAssociation(metaArticleId, articleId) {
+  const { error } = await supabase
+    .from('article_meta_articles')
+    .delete()
+    .eq('meta_article_id', metaArticleId)
+    .eq('article_id', articleId);
+
+  if (error) {
+    alert(`Errore dissociazione: ${error.message}`);
+    console.error(error);
+    return false;
+  }
+  return true;
+}

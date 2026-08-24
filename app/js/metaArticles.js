@@ -1,6 +1,3 @@
-// Sola lettura: la gestione CRUD di meta_articles resta nel PoC (Fase 0).
-// Qui serve solo per popolare l'elenco e i selettori usati altrove.
-
 import { supabase } from './supabaseClient.js';
 
 export async function fetchMetaArticles() {
@@ -16,37 +13,85 @@ export async function fetchMetaArticles() {
   return data;
 }
 
-export function renderMetaArticlesList(listEl, items) {
-  listEl.innerHTML = '';
-  for (const item of items) {
-    const li = document.createElement('li');
-    li.textContent = item.name;
-    listEl.appendChild(li);
+// Catalogo: creazione con controllo duplicati esplicito (case
+// insensitive) — a differenza di findOrCreateMetaArticle (Lista), qui
+// un duplicato blocca la creazione con un messaggio, non viene
+// silenziosamente riusato: nel Catalogo l'utente si aspetta che
+// "crea" crei qualcosa di nuovo.
+export async function createMetaArticle(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return false;
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('meta_articles')
+    .select('id')
+    .ilike('name', trimmed)
+    .limit(1);
+
+  if (fetchError) {
+    alert(`Errore verifica duplicati: ${fetchError.message}`);
+    console.error(fetchError);
+    return false;
   }
+
+  if (existing && existing.length > 0) {
+    alert(`Esiste già un meta-articolo chiamato "${trimmed}".`);
+    return false;
+  }
+
+  const { error } = await supabase.from('meta_articles').insert({ name: trimmed });
+  if (error) {
+    alert(`Errore creazione meta-articolo: ${error.message}`);
+    console.error(error);
+    return false;
+  }
+  return true;
 }
 
-export function populateMetaArticleSelect(selectEl, items) {
-  const previousValue = selectEl.value;
-  selectEl.innerHTML = '<option value="" disabled selected>Seleziona meta-articolo</option>';
-  for (const item of items) {
-    const option = document.createElement('option');
-    option.value = item.id;
-    option.textContent = item.name;
-    selectEl.appendChild(option);
+export async function updateMetaArticle(id, name) {
+  const trimmed = name.trim();
+  if (!trimmed) return false;
+
+  const { error } = await supabase
+    .from('meta_articles')
+    .update({ name: trimmed, updated_at: new Date().toISOString() })
+    .eq('id', id);
+
+  if (error) {
+    alert(`Errore modifica meta-articolo: ${error.message}`);
+    console.error(error);
+    return false;
   }
-  if (previousValue) selectEl.value = previousValue;
+  return true;
 }
 
-export async function loadMetaArticles(listEl, selectEls = []) {
-  const items = await fetchMetaArticles();
-  if (listEl) renderMetaArticlesList(listEl, items);
-  for (const selectEl of selectEls) populateMetaArticleSelect(selectEl, items);
-  return items;
+// Cancellazione reale: il meta-articolo non ha uno storico da
+// preservare (i prezzi dipendono da articolo/formato, le liste della
+// spesa sono a perdere) — a differenza di articoli e formati (D-008).
+// Le associazioni con gli articoli sono rimosse a cascata dal
+// database; se il meta-articolo è usato in una voce di lista attiva,
+// l'eliminazione viene bloccata (errore leggibile).
+export async function deleteMetaArticle(id) {
+  const { error } = await supabase.from('meta_articles').delete().eq('id', id);
+
+  if (error) {
+    if (error.code === '23503') {
+      alert(
+        'Impossibile eliminare: questo meta-articolo è usato in una lista della spesa. Rimuovi prima le voci corrispondenti.'
+      );
+    } else {
+      alert(`Errore eliminazione meta-articolo: ${error.message}`);
+    }
+    console.error(error);
+    return false;
+  }
+  return true;
 }
 
 // Fase 2 (Lista della spesa): creazione "al volo" se il meta-articolo
 // non esiste ancora — la lista non deve dipendere dalla manutenzione
-// del catalogo (decisione 7.b).
+// del catalogo (decisione 7.b). Qui, a differenza di createMetaArticle,
+// un duplicato viene riusato silenziosamente, non bloccato.
 export async function findOrCreateMetaArticle(name) {
   const trimmed = name.trim();
   if (!trimmed) return null;

@@ -7,17 +7,67 @@ import {
 import { findOrCreateMetaArticle } from './js/metaArticles.js';
 import { fetchArticlesForMetaArticle } from './js/articles.js';
 import { fetchFormatsForArticle } from './js/formats.js';
+import { createColumnBrowser } from './js/columnBrowser.js';
 
 const STATI = ['DA_ACQUISTARE', 'NEL_CARRELLO', 'ACQUISTATO', 'CANCELLATO'];
 const VINCOLI = ['LIBERO', 'PREFERITO', 'OBBLIGATORIO'];
 
 const nomeListaEl = document.getElementById('nome-lista');
-const formNuovaVoce = document.getElementById('form-nuova-voce');
-const inputNuovoMeta = document.getElementById('input-nuovo-meta');
+
+const formNuovoMetaLista = document.getElementById('form-nuovo-meta-lista');
+const inputNuovoMetaLista = document.getElementById('input-nuovo-meta-lista');
+
+const colonnaMetaLista = document.getElementById('colonna-meta-lista');
+const colonnaArticoliLista = document.getElementById('colonna-articoli-lista');
+const colonnaFormatiLista = document.getElementById('colonna-formati-lista');
+const riepilogoSelezione = document.getElementById('riepilogo-selezione');
+const btnAggiungiVoce = document.getElementById('btn-aggiungi-voce');
+const checkboxMostraTutti = document.getElementById('checkbox-mostra-tutti');
+
 const listaVociEl = document.getElementById('lista-voci');
 const stato = document.getElementById('stato');
 
 let currentListId = null;
+
+// Meta-articoli già presenti in lista (stato diverso da CANCELLATO),
+// esclusi dalla colonna "Meta-articoli" per evitare doppioni
+// accidentali. Un meta-articolo cancellato ricompare come
+// selezionabile. Il caso raro "voglio due varianti diverse dello
+// stesso generico" resta volutamente fuori scope per ora.
+let presentMetaArticleIds = new Set();
+
+// Override esplicito: a volte serve davvero più di una voce per lo
+// stesso meta-articolo (es. due marche diverse) — con la checkbox
+// "Mostra tutti" si torna a vedere anche i già presenti, riaggiungibili.
+let mostraTutti = false;
+
+const browser = createColumnBrowser({
+  metaColumnEl: colonnaMetaLista,
+  articleColumnEl: colonnaArticoliLista,
+  formatColumnEl: colonnaFormatiLista,
+  onSelectionChange: handleSelectionChange,
+  metaFilter: (item) => mostraTutti || !presentMetaArticleIds.has(item.id),
+  metaLabelSuffix: (item) => (presentMetaArticleIds.has(item.id) ? ' (già in lista)' : ''),
+});
+
+checkboxMostraTutti.addEventListener('change', async () => {
+  mostraTutti = checkboxMostraTutti.checked;
+  await browser.refreshMeta();
+});
+
+function handleSelectionChange(selection) {
+  if (!selection.metaArticle) {
+    riepilogoSelezione.textContent = 'Seleziona almeno un meta-articolo.';
+    btnAggiungiVoce.disabled = true;
+    return;
+  }
+
+  let testo = `Selezionato: ${selection.metaArticle.name}`;
+  if (selection.article) testo += ` → ${selection.article.name}`;
+  if (selection.format) testo += ` → ${selection.format.name}`;
+  riepilogoSelezione.textContent = testo;
+  btnAggiungiVoce.disabled = false;
+}
 
 function createSelect(options, selectedValue, dataset) {
   const select = document.createElement('select');
@@ -47,7 +97,9 @@ function renderItem(item) {
   titolo.textContent = testo;
   li.appendChild(titolo);
 
-  // Specializzazione progressiva (D-020): un solo passo alla volta.
+  // Specializzazione progressiva (D-020): un solo passo alla volta,
+  // per le voci già in lista (chi vuole scegliere subito la
+  // profondità usa la navigazione a colonne qui sopra).
   if (!item.articles) {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -105,6 +157,9 @@ function renderItem(item) {
 
 async function refreshItems() {
   const items = await fetchListItems(currentListId);
+  presentMetaArticleIds = new Set(
+    items.filter((item) => item.status !== 'CANCELLATO').map((item) => item.meta_articles?.id)
+  );
   listaVociEl.innerHTML = '';
   for (const item of items) {
     listaVociEl.appendChild(renderItem(item));
@@ -121,21 +176,36 @@ async function init() {
   currentListId = list.id;
   nomeListaEl.textContent = list.name;
   await refreshItems();
+  await browser.refreshMeta();
   stato.textContent = 'Connesso a Supabase.';
 }
 
-formNuovaVoce.addEventListener('submit', async (event) => {
+formNuovoMetaLista.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const name = inputNuovoMeta.value.trim();
+  const name = inputNuovoMetaLista.value.trim();
   if (!name) return;
 
-  const metaArticleId = await findOrCreateMetaArticle(name);
-  if (!metaArticleId) return;
+  const id = await findOrCreateMetaArticle(name);
+  if (id) {
+    inputNuovoMetaLista.value = '';
+    await browser.refreshMeta();
+  }
+});
 
-  const ok = await createListItem(currentListId, metaArticleId);
+btnAggiungiVoce.addEventListener('click', async () => {
+  const selection = browser.getSelection();
+  if (!selection.metaArticle) return;
+
+  const ok = await createListItem(currentListId, selection.metaArticle.id, {
+    articleId: selection.article?.id,
+    formatId: selection.format?.id,
+  });
+
   if (ok) {
-    inputNuovoMeta.value = '';
     await refreshItems();
+    // Il meta-articolo appena aggiunto sparisce dalla colonna
+    // (metaFilter) e la selezione si azzera automaticamente.
+    await browser.refreshMeta();
   }
 });
 
@@ -176,13 +246,24 @@ listaVociEl.addEventListener('change', async (event) => {
     value = null;
   }
 
-  // Aggiornamento diretto, senza refresh completo: evita di perdere
-  // il focus mentre si digita in un campo adiacente.
-  await updateListItem(itemId, { [field]: value });
+  // Aggiornamento diretto, senza refresh completo della lista: evita
+  // di perdere il focus mentre si digita in un campo adiacente.
+  const ok = await updateListItem(itemId, { [field]: value });
+
+  // Eccezione: lo stato influenza quali meta-articoli sono disponibili
+  // nella colonna di aggiunta (un item CANCELLATO libera il suo
+  // meta-articolo). "change" scatta solo al termine della modifica
+  // (blur/selezione), mai durante la digitazione, quindi qui il
+  // refresh è sicuro.
+  if (ok && field === 'status') {
+    await refreshItems();
+    await browser.refreshMeta();
+  }
 });
 
 // Delegazione click: avvia la specializzazione progressiva mostrando
-// il selettore filtrato al posto del pulsante.
+// il selettore filtrato al posto del pulsante (per le voci già in
+// lista).
 listaVociEl.addEventListener('click', async (event) => {
   const target = event.target;
   const action = target.dataset.action;

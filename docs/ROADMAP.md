@@ -48,24 +48,33 @@ attive — rimandata, vedi DECISIONS.md); - eventuali affinamenti UX.
 
 ## Fase 2.5 --- Test UX reale e affinamenti catalogo/lista
 
-**Stato: IN CORSO**
+**Stato: IN CORSO (affinamenti estetici sospesi)**
 
 Test manuale reale (non sintetico) dell'interfaccia Catalogo e Lista,
 per validare l'esperienza d'uso prima di procedere alla Fase 3.
 
 Completato durante il test: - creazione meta-articolo nel Catalogo
-(mancava); - checklist di meta-articoli esistenti nella Lista,
-filtrata dinamicamente (case-insensitive, per prefisso); - esclusione
-dei meta-articoli già presenti in lista dalla checklist, per evitare
-doppioni (ripristinati se la voce viene cancellata).
+(mancava), con controllo duplicati (case-insensitive); - modifica e
+cancellazione reale dei meta-articoli; - **Catalogo ristrutturato**
+attorno a un componente di navigazione a colonne condiviso
+(`app/js/columnBrowser.js`, stile Finder/Miller columns):
+meta-articolo → articoli associati → formati, con barra azioni
+contestuale (rinomina, elimina, dismetti/riattiva, dissocia) invece di
+pulsanti per riga; - elenco e gestione completa di articoli e formati
+(prima visibili solo nei menu a tendina); - per articoli e formati,
+**Elimina** (cancellazione reale) ed **Elimina→Dismetti** sono azioni
+distinte (coerente con D-008); - **componente di navigazione riusato
+nella Lista della spesa** per scegliere la profondità di
+specializzazione (solo meta-articolo, +articolo, +formato) al momento
+di aggiungere una voce; - in Lista, i meta-articoli già presenti sono
+esclusi di default dall'elenco selezionabile (evita doppioni
+accidentali), con override esplicito ("Mostra tutti") per il caso
+reale di più voci sullo stesso meta-articolo (es. marche diverse); -
+larghezza pagina aumentata per la navigazione a colonne.
 
-Emerso dal test, da completare: - controllo doppioni in creazione
-meta-articolo dal Catalogo; - modifica e cancellazione meta-articoli;
-- elenco articoli nel Catalogo (oggi visibili solo nei menu a
-tendina); - modifica e cancellazione articoli; - elenco formati nel
-Catalogo; - vista di navigazione per meta-articolo (meta-articolo →
-articoli associati → formati, e in futuro prezzi per supermercato) —
-utile anche per comporre la lista della spesa.
+Sospeso, da riprendere: - rifinitura estetica (colori, non ancora
+affrontati per scelta esplicita — solo usabilità finora). - eventuale
+ulteriore affinamento della distribuzione dello spazio.
 
 ## Fase 3 --- Acquisizione prezzi
 

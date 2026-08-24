@@ -36,10 +36,13 @@ export async function fetchListItems(listId) {
   return data;
 }
 
-export async function createListItem(listId, metaArticleId) {
-  const { error } = await supabase
-    .from('shopping_list_items')
-    .insert({ shopping_list_id: listId, meta_article_id: metaArticleId });
+export async function createListItem(listId, metaArticleId, { articleId, formatId } = {}) {
+  const { error } = await supabase.from('shopping_list_items').insert({
+    shopping_list_id: listId,
+    meta_article_id: metaArticleId,
+    article_id: articleId ?? null,
+    format_id: formatId ?? null,
+  });
 
   if (error) {
     alert(`Errore aggiunta voce: ${error.message}`);

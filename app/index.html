@@ -14,53 +14,72 @@
 
   <h1>Catalogo</h1>
   <p class="subtitle">
-    Incremento Fase 1 — validazione del modello dominio tramite
-    interfaccia utente reale
+    Fase 2.5 — navigazione a colonne: meta-articolo → articolo →
+    formato
   </p>
 
   <section>
-    <h2>Meta-articoli</h2>
-    <ul id="meta-articles-list"></ul>
-  </section>
-
-  <section>
-    <h2>Nuovo articolo</h2>
-    <form id="form-nuovo-articolo">
+    <h2>Nuovo meta-articolo</h2>
+    <form id="form-nuovo-meta-articolo">
       <input
         type="text"
-        id="input-nome-articolo"
-        placeholder="Nome articolo (es. Rio Mare Tonno all'olio)"
+        id="input-nome-meta-articolo"
+        placeholder="Nome meta-articolo (es. Tonno)"
         required
       >
-      <button type="submit">Crea articolo</button>
+      <button type="submit">Crea meta-articolo</button>
     </form>
   </section>
 
-  <section>
-    <h2>Associa articolo a meta-articolo</h2>
-    <form id="form-associazione">
-      <select id="select-meta-articolo-associazione" required></select>
-      <select id="select-articolo-associazione" required></select>
-      <button type="submit">Associa</button>
-    </form>
-  </section>
+  <section class="catalogo-browser">
+    <div class="colonne">
+      <div class="colonna">
+        <h3>Meta-articoli</h3>
+        <div id="colonna-meta" class="colonna-corpo"></div>
+      </div>
 
-  <section>
-    <h2>Nuovo formato</h2>
-    <form id="form-nuovo-formato">
-      <select id="select-articolo-formato" required></select>
-      <input
-        type="text"
-        id="input-nome-formato"
-        placeholder="Formato (es. 80 g)"
-        required
-      >
-      <button type="submit">Crea formato</button>
-    </form>
+      <div class="colonna">
+        <h3>Articoli</h3>
+        <div id="colonna-articoli" class="colonna-corpo"></div>
+        <form id="form-associa-esistente" class="colonna-form" hidden>
+          <select id="select-associa-esistente" required></select>
+          <button type="submit">Associa</button>
+        </form>
+        <form id="form-nuovo-articolo-associato" class="colonna-form" hidden>
+          <input
+            type="text"
+            id="input-nuovo-articolo-associato"
+            placeholder="Nuovo articolo"
+            required
+          >
+          <button type="submit">Crea e associa</button>
+        </form>
+      </div>
+
+      <div class="colonna">
+        <h3>Formati</h3>
+        <div id="colonna-formati" class="colonna-corpo"></div>
+        <form id="form-nuovo-formato" class="colonna-form" hidden>
+          <input
+            type="text"
+            id="input-nuovo-formato"
+            placeholder="Nuovo formato (es. 80 g)"
+            required
+          >
+          <button type="submit">Aggiungi formato</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="barra-azioni" class="barra-azioni"></div>
   </section>
 
   <section>
     <h2>Relazioni</h2>
+    <p class="subtitle">
+      Vista di sola lettura — un articolo può appartenere a più
+      meta-articoli (relazione N:M).
+    </p>
     <div id="relations-container"></div>
   </section>
 
