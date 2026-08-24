@@ -7,10 +7,14 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <nav class="app-nav">
-    <a href="index.html" aria-current="page">Catalogo</a>
-    <a href="lista.html">Lista della spesa</a>
-  </nav>
+  <header class="app-header">
+    <span class="app-brand">Assistente alla spesa</span>
+    <nav class="selettore-pillole" aria-label="Ambienti">
+      <a href="index.html" aria-current="page">Catalogo</a>
+      <a href="lista.html">Lista</a>
+      <span class="selettore-pillole-disabled" title="In arrivo — Fase 6">Go</span>
+    </nav>
+  </header>
 
   <h1>Catalogo</h1>
   <p class="subtitle">
@@ -79,17 +83,8 @@
     <div id="barra-azioni" class="barra-azioni"></div>
   </section>
 
-  <section>
-    <h2>Relazioni</h2>
-    <p class="subtitle">
-      Vista di sola lettura — un articolo può appartenere a più
-      meta-articoli (relazione N:M).
-    </p>
-    <div id="relations-container"></div>
-  </section>
-
-  <section>
-    <h2>Supermercati</h2>
+  <details class="pannello" open>
+    <summary>Supermercati</summary>
     <form id="form-nuovo-supermercato">
       <input
         type="text"
@@ -100,18 +95,27 @@
       <button type="submit">Crea supermercato</button>
     </form>
     <ul id="supermarkets-list"></ul>
-  </section>
+  </details>
 
-  <section>
-    <h2>Rilevazioni registrate</h2>
+  <details class="pannello">
+    <summary>Rilevazioni registrate</summary>
     <p class="subtitle">
       Incremento di test (Fase 3.1) — inserimento manuale di un prezzo
       indicativo mentre curi il catalogo (top-down); niente foto,
       Storage, OCR o revisione qui. Per registrarne una, seleziona un
       formato qui sopra.
     </p>
-    <ul id="rilevazioni-list"></ul>
-  </section>
+    <div id="rilevazioni-list"></div>
+  </details>
+
+  <details class="pannello">
+    <summary>Relazioni</summary>
+    <p class="subtitle">
+      Vista di sola lettura — un articolo può appartenere a più
+      meta-articoli (relazione N:M).
+    </p>
+    <div id="relations-container"></div>
+  </details>
 
   <p id="stato" class="subtitle"></p>
 

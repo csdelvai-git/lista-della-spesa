@@ -7,10 +7,14 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <nav class="app-nav">
-    <a href="index.html">Catalogo</a>
-    <a href="lista.html" aria-current="page">Lista della spesa</a>
-  </nav>
+  <header class="app-header">
+    <span class="app-brand">Assistente alla spesa</span>
+    <nav class="selettore-pillole" aria-label="Ambienti">
+      <a href="index.html">Catalogo</a>
+      <a href="lista.html" aria-current="page">Lista</a>
+      <span class="selettore-pillole-disabled" title="In arrivo — Fase 6">Go</span>
+    </nav>
+  </header>
 
   <h1 id="nome-lista">Lista della spesa</h1>
   <p class="subtitle">
@@ -60,11 +64,21 @@
     <button type="button" id="btn-aggiungi-voce" disabled>Aggiungi alla lista</button>
   </section>
 
-  <label class="colonna-toggle">
-    <input type="checkbox" id="checkbox-mostra-cancellati">
-    Mostra anche le voci cancellate
-  </label>
-  <ul id="lista-voci"></ul>
+  <div class="lista-toolbar">
+    <label class="colonna-toggle">
+      <input type="checkbox" id="checkbox-mostra-cancellati">
+      Mostra anche le voci cancellate
+    </label>
+    <div class="lista-toolbar-destra">
+      <span id="contatore-voci" class="contatore"></span>
+      <div class="selettore-pillole" id="densita-switch" role="group" aria-label="Densità visualizzazione">
+        <button type="button" data-densita="estesa">Estesa</button>
+        <button type="button" data-densita="media">Media</button>
+        <button type="button" data-densita="compatta">Compatta</button>
+      </div>
+    </div>
+  </div>
+  <div id="lista-voci"></div>
 
   <p id="stato" class="subtitle">Inizializzazione...</p>
 

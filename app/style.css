@@ -1,72 +1,251 @@
+:root {
+  --bg: #0d1013;
+  --surface: #15191e;
+  --surface-2: #1d232a;
+  --border: #2a323b;
+  --border-soft: #20262d;
+  --text: #edf0f2;
+  --text-muted: #8b96a1;
+  --text-faint: #57626c;
+  --accent: #34d399;
+  --accent-strong: #1f7a56;
+  --accent-contrast: #06231a;
+  --accent-soft: rgba(52, 211, 153, 0.14);
+  --danger: #f87171;
+  --radius: 10px;
+  --radius-sm: 7px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   max-width: 1100px;
   margin: 2rem auto;
   padding: 0 1rem;
-  color: #222;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
 }
 
-.app-nav {
+/* Header + selettore ambienti ------------------------------------------ */
+
+.app-header {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--border-soft);
 }
 
-.app-nav a {
-  color: #666;
+.app-brand {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+/* Selettore a pillole: riusato per l'header (ambienti) e per la
+   densità della lista (bottoni invece di link, stesso aspetto). */
+.selettore-pillole {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem;
+}
+
+.selettore-pillole a,
+.selettore-pillole button,
+.selettore-pillole-disabled {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
   text-decoration: none;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.app-nav a[aria-current="page"] {
-  color: #222;
+.selettore-pillole a:hover,
+.selettore-pillole button:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.selettore-pillole a[aria-current="page"],
+.selettore-pillole button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-contrast);
   font-weight: 600;
 }
 
+.selettore-pillole-disabled {
+  color: var(--text-faint);
+  cursor: default;
+}
+
+/* Tipografia base -------------------------------------------------------- */
+
 h1 {
   font-size: 1.4rem;
+  font-weight: 600;
   margin-bottom: 0.25rem;
+  color: var(--text);
 }
 
 h2 {
-  font-size: 1.05rem;
-  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: var(--text);
 }
 
 .subtitle {
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.85rem;
   margin-top: 0;
 }
 
-section {
-  margin-bottom: 1.75rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #eee;
+/* Sezioni a "card" -------------------------------------------------------- */
+
+section,
+details.pannello {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.4rem;
+  margin-bottom: 1.25rem;
 }
 
-section:last-of-type {
-  border-bottom: none;
+details.pannello > summary {
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  list-style: none;
 }
+
+details.pannello > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.pannello > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  margin-right: 0.3rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+details.pannello[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+details.pannello > summary ~ * {
+  margin-top: 0.9rem;
+}
+
+details.pannello[open] > summary {
+  margin-bottom: 0;
+}
+
+/* Form + controlli -------------------------------------------------------- */
 
 form {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 input[type="text"],
+input[type="number"],
 select {
   flex: 1;
   min-width: 10rem;
-  padding: 0.5rem;
-  font-size: 1rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.95rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+
+input[type="text"]::placeholder,
+input[type="number"]::placeholder {
+  color: var(--text-faint);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--accent);
 }
 
 button {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+button:hover {
+  background: var(--border);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button:disabled:hover {
+  background: var(--surface-2);
+}
+
+/* Azioni primarie: submit dei form (creazione) + "Aggiungi alla lista" */
+button[type="submit"],
+#btn-aggiungi-voce {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
+button[type="submit"]:hover,
+#btn-aggiungi-voce:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: var(--text);
+}
+
+button[type="submit"]:disabled,
+#btn-aggiungi-voce:disabled {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-faint);
 }
 
 ul {
@@ -74,6 +253,8 @@ ul {
   padding: 0;
   margin: 0;
 }
+
+/* Navigazione a colonne --------------------------------------------------- */
 
 .catalogo-browser {
   max-width: 100%;
@@ -94,15 +275,18 @@ ul {
 }
 
 .colonna h3 {
-  font-size: 0.85rem;
-  color: #666;
+  font-size: 0.78rem;
+  color: var(--text-muted);
   margin: 0 0 0.4rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .colonna-corpo {
-  border: 1px solid #eee;
-  border-radius: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   min-height: 8rem;
   max-height: 20rem;
   overflow-y: auto;
@@ -114,25 +298,31 @@ ul {
 }
 
 .colonna-corpo li {
-  padding: 0.45rem 0.6rem;
+  padding: 0.5rem 0.65rem;
   font-size: 0.9rem;
   cursor: pointer;
-  border-bottom: 1px solid #f4f4f4;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text);
+}
+
+.colonna-corpo li:last-child {
+  border-bottom: none;
 }
 
 .colonna-corpo li:hover {
-  background: #f7f7f7;
+  background: var(--border-soft);
 }
 
 .colonna-corpo li.selezionato {
-  background: #222;
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
 }
 
 .colonna-vuota {
-  padding: 0.6rem;
+  padding: 0.65rem;
   font-size: 0.8rem;
-  color: #999;
+  color: var(--text-faint);
   margin: 0;
 }
 
@@ -153,7 +343,7 @@ ul {
   gap: 0.35rem;
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .barra-azioni {
@@ -162,53 +352,245 @@ ul {
   align-items: center;
   gap: 0.5rem;
   margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #eee;
+  padding: 0.75rem 0.9rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
 }
 
 .barra-azioni button {
   font-size: 0.8rem;
-  padding: 0.3rem 0.5rem;
+  padding: 0.35rem 0.6rem;
 }
 
-#relations-container ul li {
-  padding: 0.35rem 0;
-  border-bottom: 1px solid #f2f2f2;
+#relations-container ul li,
+#supermarkets-list li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+#relations-container ul li:last-child,
+#supermarkets-list li:last-child {
+  border-bottom: none;
 }
 
 #relations-container {
   font-size: 0.9rem;
 }
 
+#supermarkets-list,
+#rilevazioni-list {
+  margin-top: 0.75rem;
+}
+
+/* Rilevazioni registrate: un <details> annidato per supermercato,
+   espandibile/comprimibile indipendentemente dagli altri. */
+.pannello-annidato {
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.pannello-annidato:last-child {
+  border-bottom: none;
+}
+
+.pannello-annidato summary {
+  cursor: pointer;
+  padding: 0.5rem 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  list-style: none;
+}
+
+.pannello-annidato summary::-webkit-details-marker {
+  display: none;
+}
+
+.pannello-annidato summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  margin-right: 0.3rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.pannello-annidato[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.pannello-annidato ul {
+  margin: 0 0 0.6rem 1.3rem;
+}
+
+.pannello-annidato li {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.pannello-annidato li:last-child {
+  border-bottom: none;
+}
+
+/* Voci della lista della spesa --------------------------------------------- */
+
+.lista-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.lista-toolbar-destra {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.contatore {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 #lista-voci {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.4rem;
+  overflow-x: auto;
 }
 
 .voce-lista {
-  padding: 0.75rem;
-  border: 1px solid #eee;
-  border-radius: 4px;
+  padding: 0.55rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
 }
 
 .voce-titolo {
+  font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  color: var(--text);
+  margin-bottom: 0.35rem;
 }
 
 .voce-controlli {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
 }
 
 .voce-controlli select,
 .voce-controlli input {
   flex: 1;
-  min-width: 7rem;
-  padding: 0.35rem;
+  min-width: 6.5rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
+}
+
+.voce-lista button {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.55rem;
+}
+
+.voce-titolo > button {
+  margin-bottom: 0.35rem;
+}
+
+/* Vista Media: riga tabellare compatta, tutti i campi sempre
+   visibili — pensata per preparare la lista da PC (D-029). */
+.voce-media {
+  display: grid;
+  grid-template-columns: 1fr 108px 100px 68px 68px 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+}
+
+.voce-media-header {
+  background: none;
+  border: none;
+  padding: 0.1rem 0.75rem;
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.voce-media select,
+.voce-media input {
+  min-width: 0;
+  padding: 0.3rem 0.4rem;
+  font-size: 0.78rem;
+}
+
+.voce-media-titolo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.85rem;
+  color: var(--text);
+  overflow: hidden;
+}
+
+.voce-media-titolo span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Vista Compatta: titolo + stato sempre visibili, il resto per voce
+   si apre su richiesta (<details> nativo) — pensata per scorrere e
+   spuntare la lista al supermercato (D-029). */
+.voce-compatta > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  cursor: pointer;
+  list-style: none;
+  padding: 0.1rem 0;
+}
+
+.voce-compatta > summary::-webkit-details-marker {
+  display: none;
+}
+
+.voce-compatta-titolo {
+  font-size: 0.88rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voce-compatta > summary select {
+  flex-shrink: 0;
+  width: auto;
+  min-width: 8rem;
+}
+
+.voce-compatta-corpo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.voce-compatta-corpo select,
+.voce-compatta-corpo input {
+  flex: 1;
+  min-width: 6.5rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
 }

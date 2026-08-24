@@ -261,3 +261,30 @@ lista resta valida finché l'utente non la cambia esplicitamente).
 Naming: `preferred_supermarket_id` invece di `supermarket_id`, per
 rendere esplicito nello schema stesso che si tratta di una preferenza
 dell'utente e non di un vincolo/collegamento a un dato di prezzo.
+
+### D-029 --- Densità di visualizzazione della lista (Estesa/Media/Compatta), tema chiaro rimandato
+
+La lista della spesa supporta tre densità di visualizzazione delle
+voci:
+
+-   **Estesa** — card come oggi (titolo + controlli su più righe),
+    scelta solo manuale;
+-   **Media** — riga tabellare compatta, tutti i campi sempre
+    visibili; pensata per preparare la lista da PC;
+-   **Compatta** — titolo + stato sempre visibili, vincolo/quantità/
+    unità/nota si aprono per singola voce su richiesta (`<details>`
+    nativo per voce, nessuno stato JS aggiuntivo); pensata per
+    scorrere/spuntare la lista al supermercato.
+
+Selezione automatica di partenza in base alla larghezza viewport
+(`matchMedia`, stessa soglia già usata per il layout responsive):
+desktop → Media, mobile → Compatta. Un selettore manuale (stesso
+stile a pillole dell'header ambienti) permette di scegliere una delle
+tre in qualunque momento; la scelta è salvata in `localStorage` (non
+in Supabase — coerente con D-010, nessuna gestione utenti/account) e
+persiste tra le pagine.
+
+Il tema chiaro/scuro è rimandato a un incremento separato e
+successivo: è un asse ortogonale alla densità (tocca solo i colori,
+non il markup delle voci); trattarlo insieme avrebbe reso più
+difficile verificare i due cambiamenti singolarmente.

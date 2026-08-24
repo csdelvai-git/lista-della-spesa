@@ -48,7 +48,7 @@ attive — rimandata, vedi DECISIONS.md); - eventuali affinamenti UX.
 
 ## Fase 2.5 --- Test UX reale e affinamenti catalogo/lista
 
-**Stato: IN CORSO (affinamenti estetici sospesi)**
+**Stato: IN CORSO (rifinitura estetica in corso)**
 
 Test manuale reale (non sintetico) dell'interfaccia Catalogo e Lista,
 per validare l'esperienza d'uso prima di procedere alla Fase 3.
@@ -72,9 +72,31 @@ accidentali), con override esplicito ("Mostra tutti") per il caso
 reale di più voci sullo stesso meta-articolo (es. marche diverse); -
 larghezza pagina aumentata per la navigazione a colonne.
 
-Sospeso, da riprendere: - rifinitura estetica (colori, non ancora
-affrontati per scelta esplicita — solo usabilità finora). - eventuale
-ulteriore affinamento della distribuzione dello spazio.
+Ripresa, rifinitura estetica (Catalogo + Lista): - tema scuro
+(palette a variabili CSS in `app/style.css`, nessuna dipendenza
+esterna aggiunta); - header comune con selettore "ambienti"
+(Catalogo/Lista/Go — Go disabilitato, solo promemoria visivo per la
+Fase 6, nessuna funzionalità); - Catalogo riorganizzato: le parti
+interattive (Nuovo meta-articolo, colonne, Supermercati) restano in
+alto e sempre visibili/aperte, i dati di sola consultazione
+(Rilevazioni registrate, Relazioni) sono in `<details>` chiuse di
+default (HTML nativo, zero JS aggiuntivo); - Rilevazioni registrate
+raggruppate per supermercato, ciascuno in un `<details>` annidato
+espandibile/comprimibile indipendentemente dagli altri (utile con
+molte rilevazioni); corretto un bug di specificità CSS che faceva
+seguire a tutti i gruppi annidati lo stato aperto/chiuso del pannello
+esterno; - Lista della spesa: voci più compatte, contatore voci
+(totale + da acquistare) sopra l'elenco; - **tre densità di
+visualizzazione della lista** (Estesa/Media/Compatta — D-029),
+selezionate automaticamente in base alla larghezza viewport
+(desktop→Media, mobile→Compatta) con selettore manuale a pillole e
+preferenza salvata in `localStorage`; verificate le tre viste, la
+persistenza tra ricaricamenti/aggiornamenti della lista e il
+comportamento del menu di stato dentro la vista Compatta (non deve
+richiudere accidentalmente il dettaglio della voce).
+
+Da completare: - tema chiaro, come incremento successivo e separato
+dalla densità (rimandato, vedi D-029).
 
 ## Fase 3 --- Acquisizione prezzi
 

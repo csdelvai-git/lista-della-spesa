@@ -76,19 +76,46 @@ async function refreshSupermarkets() {
 
 function renderRilevazione(obs) {
   const li = document.createElement('li');
-  let testo = obs.supermarkets?.name ?? '(supermercato non disponibile)';
-  if (obs.articles) testo += ` — ${obs.articles.name}`;
-  if (obs.formats) testo += ` (${obs.formats.name})`;
+  let testo = obs.articles?.name ?? '(articolo non disponibile)';
+  if (obs.formats) testo += ` → ${obs.formats.name}`;
   testo += ` — €${obs.package_price} — ${obs.status}`;
   li.textContent = testo;
   return li;
 }
 
+// Raggruppate per supermercato (un <details> annidato ciascuno, così
+// con centinaia di rilevazioni si può espandere solo il supermercato
+// che interessa, es. Lidl, senza aprire anche Aldi o Orvea).
 async function refreshRilevazioni() {
   const items = await fetchPriceObservations();
   rilevazioniList.innerHTML = '';
+
+  const gruppi = new Map();
   for (const item of items) {
-    rilevazioniList.appendChild(renderRilevazione(item));
+    const nome = item.supermarkets?.name ?? '(supermercato non disponibile)';
+    if (!gruppi.has(nome)) gruppi.set(nome, []);
+    gruppi.get(nome).push(item);
+  }
+
+  const nomiOrdinati = [...gruppi.keys()].sort((a, b) => a.localeCompare(b, 'it'));
+  for (const nome of nomiOrdinati) {
+    const voci = gruppi
+      .get(nome)
+      .sort((a, b) => (a.articles?.name ?? '').localeCompare(b.articles?.name ?? '', 'it'));
+
+    const details = document.createElement('details');
+    details.className = 'pannello-annidato';
+    const summary = document.createElement('summary');
+    summary.textContent = `${nome} (${voci.length})`;
+    details.appendChild(summary);
+
+    const ul = document.createElement('ul');
+    for (const item of voci) {
+      ul.appendChild(renderRilevazione(item));
+    }
+    details.appendChild(ul);
+
+    rilevazioniList.appendChild(details);
   }
 }
 
