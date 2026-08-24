@@ -95,6 +95,12 @@ Implementazione: - storico; - confronto prezzi; - prezzo normalizzato.
 Implementazione: - lista durante la spesa; - spunta articoli; - aggiunte
 durante il percorso.
 
+Nota UX (emersa in Fase 2.5): lo spostamento tra stati
+(DA_ACQUISTARE/NEL_CARRELLO/ACQUISTATO) durante la spesa reale non può
+passare da un menu a tendina — serve un gesto rapido a singolo tap,
+stesso principio già applicato in Lista per nascondere le voci
+CANCELLATO dall'elenco attivo.
+
 ## Fase 7 --- Ottimizzazione acquisti
 
 Da definire: - algoritmo; - supermercati; - costi di spostamento; -

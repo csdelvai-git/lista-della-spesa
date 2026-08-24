@@ -23,11 +23,17 @@ const colonnaFormatiLista = document.getElementById('colonna-formati-lista');
 const riepilogoSelezione = document.getElementById('riepilogo-selezione');
 const btnAggiungiVoce = document.getElementById('btn-aggiungi-voce');
 const checkboxMostraTutti = document.getElementById('checkbox-mostra-tutti');
+const checkboxMostraCancellati = document.getElementById('checkbox-mostra-cancellati');
 
 const listaVociEl = document.getElementById('lista-voci');
 const stato = document.getElementById('stato');
 
 let currentListId = null;
+
+// Le voci CANCELLATO restano nel database (stato del ciclo di vita,
+// non cancellazione — DOMAIN_MODEL.md) ma di default non intasano più
+// l'elenco visibile: si possono rivedere con la checkbox sotto.
+let mostraCancellati = false;
 
 // Meta-articoli già presenti in lista (stato diverso da CANCELLATO),
 // esclusi dalla colonna "Meta-articoli" per evitare doppioni
@@ -53,6 +59,11 @@ const browser = createColumnBrowser({
 checkboxMostraTutti.addEventListener('change', async () => {
   mostraTutti = checkboxMostraTutti.checked;
   await browser.refreshMeta();
+});
+
+checkboxMostraCancellati.addEventListener('change', async () => {
+  mostraCancellati = checkboxMostraCancellati.checked;
+  await refreshItems();
 });
 
 function handleSelectionChange(selection) {
@@ -160,8 +171,10 @@ async function refreshItems() {
   presentMetaArticleIds = new Set(
     items.filter((item) => item.status !== 'CANCELLATO').map((item) => item.meta_articles?.id)
   );
+
+  const visibili = mostraCancellati ? items : items.filter((item) => item.status !== 'CANCELLATO');
   listaVociEl.innerHTML = '';
-  for (const item of items) {
+  for (const item of visibili) {
     listaVociEl.appendChild(renderItem(item));
   }
 }
