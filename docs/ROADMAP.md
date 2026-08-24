@@ -110,7 +110,25 @@ prezzo normalizzato; vincolo su source verificato anche in negativo).
 Da completare (3.1): - pagina app/prezzi.html; - gestione supermercati
 separata (nessuna creazione al volo, decisione 9.c).
 
-Rimandato: - foto cartellino e Storage (3.2); - OCR/AI (Fase 4).
+Completato (3.2 — solo schema e Storage, UI non ancora implementata):
+- tabella images (RLS attiva, policy permissive — D-027), collegata a
+price_observations con ON DELETE CASCADE (solo il metadato; il file
+fisico nello Storage non viene mai rimosso automaticamente, va gestito
+esplicitamente dall'applicazione); - cardinalità 1:N images →
+price_observations; - kind = CARTELLINO in questo incremento, PACKAGE
+ammesso nello schema ma fuori scope UI; - bucket Storage
+"immagini-prezzi", pubblico, limite 5 MB e soli JPG/PNG applicati a
+livello di bucket (non solo lato UI); - verificato con dati/file di
+test: upload reale, recupero via URL pubblico, catena completa
+supermercato → rilevazione → immagine, cascade delete del metadato
+alla cancellazione della rilevazione (file fisico rimasto, come
+previsto), rimozione esplicita del file, rifiuto di un tipo di file
+non ammesso (test negativo). Dati e file di test rimossi.
+
+Da completare (3.2): - pagina app/prezzi.html con upload foto (stessa
+UI di 3.1, non ancora costruita).
+
+Rimandato: - OCR/AI (Fase 4).
 
 ## Fase 4 --- OCR e AI
 

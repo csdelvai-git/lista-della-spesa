@@ -222,3 +222,24 @@ non prima.
 Motivazione: evitare di anticipare nel modello dati funzionalità non
 ancora implementate (CLAUDE.md: "non sviluppare funzionalità future
 non richieste"), anche quando il valore è già previsto in ROADMAP.md.
+
+### D-027 --- Policy Storage permissive, stesso motivo di D-010
+
+Il bucket `immagini-prezzi` e le relative policy su `storage.objects`
+sono deliberatamente permissive (chiunque con la publishable key può
+leggere/scrivere/eliminare i file), esattamente come tutte le tabelle
+del database.
+
+Motivazione: coerente con D-010 (nessuna gestione utenti nell'MVP) —
+il progetto non prevede autenticazione in questa fase, e le foto dei
+cartellini non contengono dati personali sensibili. Non è un livello
+di apertura diverso da quello già scelto per i dati testuali fin
+dalla Fase 0: le immagini non richiedono una postura di sicurezza
+diversa dal resto del progetto. Il bucket applica comunque un limite
+tecnico di 5 MB per file e accetta solo `image/jpeg`/`image/png`, a
+livello di bucket (non solo lato UI) — verificato che un tipo non
+ammesso viene rifiutato da Supabase stesso.
+
+Da rivalutare se in futuro il progetto introduce autenticazione o
+dati personali sensibili (es. immagini che includono informazioni
+identificative).
