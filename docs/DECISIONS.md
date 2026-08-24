@@ -243,3 +243,21 @@ ammesso viene rifiutato da Supabase stesso.
 Da rivalutare se in futuro il progetto introduce autenticazione o
 dati personali sensibili (es. immagini che includono informazioni
 identificative).
+
+### D-028 --- Supermercato preferito in lista: preferred_supermarket_id, non un legame a price_observations
+
+`shopping_list_items` guadagna `preferred_supermarket_id` (FK
+nullable a `supermarkets`), non `price_observation_id`.
+
+Motivazione: la voce lista deve memorizzare una preferenza/decisione
+d'acquisto dell'utente, non una dipendenza da una rilevazione storica
+specifica. La rilevazione prezzo resta un evento indipendente (D-005)
+— prezzo osservato, supermercato, data — che la UI può usare per
+*suggerire* il supermercato preferito, ma la lista salva solo la
+scelta finale, slegata dal ciclo di vita di quella rilevazione (se la
+rilevazione viene eliminata o il prezzo cambia, la preferenza in
+lista resta valida finché l'utente non la cambia esplicitamente).
+
+Naming: `preferred_supermarket_id` invece di `supermarket_id`, per
+rendere esplicito nello schema stesso che si tratta di una preferenza
+dell'utente e non di un vincolo/collegamento a un dato di prezzo.

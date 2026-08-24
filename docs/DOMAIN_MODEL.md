@@ -121,8 +121,16 @@ ottimizzazione acquisti.
     VOCE LISTA
 
 Ogni voce lista contiene: - meta-articolo obbligatorio; - articolo
-opzionale; - formato opzionale; - quantità opzionale; - nota libera; -
-vincolo di acquisto; - stato operativo.
+opzionale; - formato opzionale; - supermercato preferito opzionale; -
+quantità opzionale; - nota libera; - vincolo di acquisto; - stato
+operativo.
+
+Il supermercato preferito è una preferenza/decisione d'acquisto
+dell'utente, non un legame con una rilevazione prezzo specifica: la UI
+può suggerirlo a partire da una rilevazione osservata, ma la voce
+lista memorizza solo il supermercato scelto, non l'evento di
+rilevazione che l'ha ispirato (vedi "Rilevazione prezzo" più sotto e
+D-028 in DECISIONS.md).
 
 ------------------------------------------------------------------------
 
@@ -198,3 +206,6 @@ algoritmi di ottimizzazione.
 6.  Prezzo confezione e prezzo normalizzato sono entrambi importanti.
 7.  OCR e AI producono proposte.
 8.  La conferma dell'utente rende definitivo il dato.
+9.  Il supermercato preferito di una voce lista è una decisione
+    dell'utente, indipendente dalle rilevazioni prezzo che l'hanno
+    eventualmente suggerita.
