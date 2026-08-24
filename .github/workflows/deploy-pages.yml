@@ -1,10 +1,10 @@
-name: Deploy PoC to GitHub Pages
+name: Deploy app to GitHub Pages
 
 on:
   push:
     branches: [main]
     paths:
-      - poc/**
+      - app/**
       - .github/workflows/deploy-pages.yml
   workflow_dispatch:
 
@@ -28,6 +28,6 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./poc
+          path: ./app
       - id: deployment
         uses: actions/deploy-pages@v4

@@ -1,8 +1,11 @@
 # PoC tecnico — GitHub Pages + Supabase
 
-**Stato: completato e validato (Fase 0 — 24/08/2026).**
+**Stato: completato e validato (Fase 0 — 24/08/2026). Scopo concluso.**
 
-Sito live: https://csdelvai-git.github.io/lista-della-spesa/
+Dal 24/08/2026 GitHub Pages pubblica `app/`, non più questa cartella
+(vedi D-025 in `../docs/DECISIONS.md`). Il PoC resta nel repository
+come riferimento storico, non più raggiungibile all'URL pubblico.
+
 Repository: https://github.com/csdelvai-git/lista-della-spesa
 
 ---

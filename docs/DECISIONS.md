@@ -140,6 +140,10 @@ RLS, non dalla segretezza della chiave, come già chiarito in D-017).
 `poc/config.js` resta versionato come da D-017 e non viene modificato:
 quella scelta era e resta esplicitamente limitata al PoC.
 
+**Superata da D-025**: valida finché `app/` restava solo locale: da
+quando `app/` viene pubblicato su GitHub Pages, si applica lo stesso
+vincolo pratico già risolto per il PoC in D-017.
+
 ### D-020 --- Specializzazione progressiva nella lista
 
 Nella voce di lista il meta-articolo è sempre sufficiente da solo;
@@ -188,3 +192,21 @@ impedito. L'interfaccia di aggiunta nasconde di default i
 meta-articoli già presenti in lista per evitare doppioni accidentali,
 con una checkbox "Mostra tutti" per il caso reale in cui servono più
 voci per lo stesso meta-articolo.
+
+### D-025 --- app/config.js versionato per il deploy (supera D-019)
+
+Il PoC ha concluso il suo scopo di validazione: GitHub Pages pubblica
+ora `app/` al posto di `poc/`. Per farlo funzionare online,
+`app/config.js` **viene versionato**, superando la scelta di D-019
+(che escludeva il file da git finché `app/` restava solo locale).
+
+Motivazione: identica a D-017 (PoC) — GitHub Pages non ha un
+backend/build per iniettare configurazioni, quindi un sito statico
+senza `config.js` raggiungibile online resta bloccato in fase di
+inizializzazione. Il file contiene solo URL e anon/publishable key
+Supabase — non un segreto reale; la sicurezza resta garantita dalle
+policy RLS, non dalla segretezza della chiave. Non contiene mai la
+password del database né la service_role key.
+
+`poc/` resta nel repository come riferimento storico, ma non è più il
+target di GitHub Pages.
