@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scontrino — mockup</title>
+<style>
+  :root{
+    --paper:#EFEDE6;
+    --paper-dark:#E4E1D6;
+    --ink:#1C1B18;
+    --ink-soft:#57534A;
+    --ink-faint:#8C887C;
+    --green:#2F6844;
+    --green-bg:#DCE7DD;
+    --amber:#B9791F;
+    --amber-bg:#F2E3C7;
+    --red:#A63A2E;
+    --red-bg:#F0DBD6;
+    --line:#CFCABC;
+    --font-display:'Arial Black','Helvetica Neue',Arial,sans-serif;
+    --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:'SF Mono','Roboto Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#D9D5C8;
+    font-family:var(--font-body);
+    padding:32px 12px;
+    display:flex;
+    justify-content:center;
+  }
+  .device{
+    width:380px;
+    background:var(--paper);
+    border-radius:34px;
+    border:10px solid var(--ink);
+    box-shadow:0 18px 40px rgba(0,0,0,0.25);
+    overflow:hidden;
+    position:relative;
+  }
+  .notch{
+    position:absolute;
+    top:0; left:50%;
+    transform:translateX(-50%);
+    width:120px; height:22px;
+    background:var(--ink);
+    border-radius:0 0 14px 14px;
+    z-index:5;
+  }
+  .screen{
+    height:760px;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .statusbar{
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 22px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink);
+    flex-shrink:0;
+  }
+  .topbar{
+    padding:6px 20px 14px;
+    flex-shrink:0;
+  }
+  .topbar .eyebrow{
+    font-family:var(--font-mono);
+    font-size:10px;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    margin:0 0 2px;
+  }
+  .topbar h1{
+    font-family:var(--font-display);
+    font-size:26px;
+    letter-spacing:-0.01em;
+    margin:0;
+    color:var(--ink);
+    text-transform:uppercase;
+  }
+  .barcode-divider{
+    height:14px;
+    margin:0 0 0;
+    background-image:repeating-linear-gradient(90deg,var(--ink) 0px,var(--ink) 1px,transparent 1px,transparent 3px,var(--ink) 3px,var(--ink) 5px,transparent 5px,transparent 6px,var(--ink) 6px,var(--ink) 8px,transparent 8px,transparent 9px);
+    opacity:0.85;
+    flex-shrink:0;
+  }
+  .content{
+    flex:1;
+    overflow-y:auto;
+    padding:16px 18px 20px;
+  }
+  .content::-webkit-scrollbar{display:none;}
+
+  .section-label{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:18px 0 8px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-label:first-child{margin-top:2px;}
+  .section-label::after{
+    content:"";
+    flex:1;
+    border-bottom:1px dashed var(--line);
+  }
+
+  .shop-group{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  .shop-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:9px 12px;
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .shop-head .name{
+    font-family:var(--font-display);
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+  }
+  .shop-head .count{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:#C8C4B4;
+  }
+  .item-row{
+    display:flex;
+    align-items:center;
+    padding:10px 12px;
+    border-top:1px dashed var(--line);
+    gap:8px;
+  }
+  .item-row:first-of-type{border-top:none;}
+  .item-check{
+    width:16px;height:16px;
+    border:1.5px solid var(--ink-faint);
+    border-radius:3px;
+    flex-shrink:0;
+  }
+  .item-name{
+    font-size:13.5px;
+    color:var(--ink);
+    flex:1;
+  }
+  .item-leader{
+    flex:0 0 auto;
+    border-bottom:1px dotted var(--ink-faint);
+    flex-grow:1;
+    margin:0 6px;
+    height:1px;
+    min-width:8px;
+  }
+  .item-price{
+    font-family:var(--font-mono);
+    font-size:13px;
+    font-weight:bold;
+    color:var(--green);
+    white-space:nowrap;
+  }
+  .item-delta{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    white-space:nowrap;
+  }
+  .item-delta.d-zero{color:var(--green);}
+  .item-delta.d-pos{color:var(--red);}
+  .item-info-btn{
+    width:18px;height:18px;
+    border-radius:50%;
+    border:1px solid var(--ink-faint);
+    background:none;
+    color:var(--ink-faint);
+    font-family:var(--font-mono);
+    font-size:10px;
+    font-style:italic;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    cursor:pointer;
+    padding:0;
+  }
+  .item-info-btn:active{background:var(--paper-dark);}
+  .item-info-btn.state-photo{border-color:var(--amber);color:var(--amber);}
+  .item-info-btn.state-nodata{border-color:var(--red);color:var(--red);}
+  .item-info-spacer{width:18px;flex-shrink:0;}
+
+  .scan-context{
+    background:var(--amber-bg);
+    color:var(--ink);
+    font-size:12px;
+    line-height:1.4;
+    padding:9px 11px;
+    border-radius:4px;
+    margin-bottom:12px;
+  }
+  .scan-context b{color:var(--amber);}
+
+  .add-modal-body{padding:14px 16px 16px;}
+  .add-modal-icon{
+    width:40px;height:40px;
+    border-radius:50%;
+    background:var(--red-bg);
+    color:var(--red);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:10px;
+  }
+  .add-modal-title{
+    font-family:var(--font-display);
+    font-size:15px;
+    text-transform:uppercase;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .add-modal-sub{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:0 0 14px;
+  }
+  .add-modal-actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .flatten-bar{
+    margin:2px 0 4px;
+  }
+  .flatten-label{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-faint);
+    margin-bottom:7px;
+  }
+  .chip-row{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:2px;
+  }
+  .chip{
+    flex-shrink:0;
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    padding:6px 12px;
+    border:1px solid var(--ink);
+    border-radius:20px;
+    color:var(--ink);
+    background:#fff;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .chip.active{
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .flatten-note{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    background:var(--amber-bg);
+    border-radius:4px;
+    padding:8px 10px;
+    margin:10px 0 4px;
+  }
+  .flatten-note b{color:var(--amber);}
+
+  .modal-overlay{
+    display:none;
+    position:absolute;
+    inset:0;
+    background:rgba(28,27,24,0.55);
+    z-index:20;
+    align-items:center;
+    justify-content:center;
+    padding:0 28px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-card{
+    background:#fff;
+    border-radius:8px;
+    width:100%;
+    overflow:hidden;
+  }
+  .modal-img{
+    aspect-ratio:1/1;
+    background:var(--paper-dark);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink-faint);
+    position:relative;
+  }
+  .modal-close{
+    position:absolute;
+    top:8px;right:8px;
+    width:26px;height:26px;
+    border-radius:50%;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .modal-body{padding:12px 14px 14px;}
+  .modal-name{
+    font-family:var(--font-display);
+    font-size:15px;
+    text-transform:uppercase;
+    color:var(--ink);
+    margin:0 0 3px;
+  }
+  .modal-sub{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    color:var(--ink-faint);
+  }
+
+  .fab{
+    position:absolute;
+    right:18px;
+    bottom:86px;
+    width:52px;height:52px;
+    border-radius:50%;
+    background:var(--ink);
+    color:var(--paper);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);
+    font-size:22px;
+    box-shadow:0 6px 14px rgba(0,0,0,0.3);
+  }
+
+  .compare-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .compare-title{
+    font-family:var(--font-display);
+    font-size:15px;
+    text-transform:uppercase;
+    color:var(--ink);
+    margin-bottom:2px;
+  }
+  .compare-sub{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    color:var(--ink-faint);
+    margin-bottom:10px;
+  }
+  .rank-row{
+    display:flex;
+    align-items:center;
+    padding:8px 0;
+    border-top:1px dashed var(--line);
+    gap:10px;
+  }
+  .rank-row:first-of-type{border-top:none;}
+  .rank-badge{
+    font-family:var(--font-mono);
+    font-size:11px;
+    width:20px;height:20px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    color:#fff;
+  }
+  .rank-1{background:var(--green);}
+  .rank-2{background:var(--ink-faint);}
+  .rank-3{background:var(--ink-faint);}
+  .rank-shop{font-size:13px;color:var(--ink);flex:1;}
+  .rank-price{font-family:var(--font-mono);font-size:13px;font-weight:bold;color:var(--ink);}
+  .rank-price.best{color:var(--green);}
+  .save-tag{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-size:10px;
+    background:var(--green-bg);
+    color:var(--green);
+    padding:2px 6px;
+    border-radius:3px;
+    margin-top:8px;
+  }
+
+  .scan-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:6px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .scan-card.highlight{border-color:var(--amber);}
+  .scan-card-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px 12px;
+  }
+  .scan-card-icon{
+    width:34px;height:34px;
+    border-radius:50%;
+    background:var(--paper-dark);
+    color:var(--ink-faint);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .scan-card-icon.captured{background:var(--green-bg);color:var(--green);}
+  .scan-card-icon.highlight{background:var(--amber-bg);color:var(--amber);}
+  .scan-card-titlerow{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:6px;
+  }
+  .scan-card-title{
+    font-family:var(--font-display);
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    color:var(--ink);
+  }
+  .scan-card-tag{
+    font-family:var(--font-mono);
+    font-size:9px;
+    text-transform:uppercase;
+    background:var(--amber);
+    color:#fff;
+    padding:2px 6px;
+    border-radius:3px;
+    flex-shrink:0;
+  }
+  .scan-card-purpose{
+    font-size:11px;
+    color:var(--ink-soft);
+    padding:0 12px 10px 56px;
+    margin-top:-6px;
+  }
+  .scan-card-detail{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--ink);
+    padding:9px 12px;
+    border-top:1px dashed var(--line);
+    background:var(--paper-dark);
+  }
+  .scan-card-detail.pending{color:var(--ink-faint);font-style:italic;}
+  .scan-card-actions{
+    padding:9px 12px;
+    border-top:1px dashed var(--line);
+    display:flex;
+    justify-content:flex-end;
+  }
+  .scan-card-btn{
+    font-family:var(--font-mono);
+    font-size:11px;
+    padding:6px 12px;
+    border:1px solid var(--ink);
+    border-radius:4px;
+    background:none;
+    color:var(--ink);
+    cursor:pointer;
+  }
+
+  .outcome-row{
+    display:flex;
+    gap:6px;
+    padding:0 12px 10px 56px;
+    margin-top:-2px;
+  }
+  .outcome-chip{
+    font-family:var(--font-mono);
+    font-size:10px;
+    padding:4px 8px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink-faint);
+    cursor:pointer;
+  }
+  .outcome-chip.active-found{border-color:var(--green);color:var(--green);background:var(--green-bg);}
+  .outcome-chip.active-notfound{border-color:var(--red);color:var(--red);background:var(--red-bg);}
+  .outcome-chip.active-unreadable{border-color:var(--amber);color:var(--amber);background:var(--amber-bg);}
+
+  .confirm-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:6px;
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  .confirm-row{
+    padding:9px 12px;
+    border-top:1px dashed var(--line);
+  }
+  .confirm-row:first-of-type{border-top:none;}
+  .confirm-row-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:5px;
+  }
+  .confirm-label{
+    font-family:var(--font-mono);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-faint);
+  }
+  .confirm-tag{
+    font-family:var(--font-mono);
+    font-size:9.5px;
+    padding:2px 7px;
+    border-radius:3px;
+    text-transform:uppercase;
+  }
+  .confirm-tag.tag-wait{background:var(--paper-dark);color:var(--ink-faint);}
+  .confirm-tag.tag-verify{background:var(--amber-bg);color:var(--amber);}
+  .confirm-tag.tag-manual{background:var(--red-bg);color:var(--red);}
+  .confirm-tag.tag-confirmed{background:var(--green-bg);color:var(--green);}
+  .confirm-inputrow{display:flex;align-items:center;gap:8px;}
+  .confirm-input{
+    flex:1;
+    font-family:var(--font-mono);
+    font-size:13px;
+    padding:7px 9px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .confirm-input::placeholder{color:var(--ink-faint);font-style:italic;}
+  .confirm-check{
+    width:28px;height:28px;
+    border-radius:50%;
+    border:1px solid var(--ink-faint);
+    background:none;
+    color:var(--ink-faint);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    cursor:pointer;
+  }
+  .confirm-check.on{background:var(--green);border-color:var(--green);color:#fff;}
+  .confirm-summary{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--amber);
+    margin:0 0 8px;
+    text-align:center;
+  }
+  .confirm-summary.all-ok{color:var(--green);}
+
+  .meta-select{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    margin-bottom:14px;
+  }
+  .meta-option{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 14px;
+    border-top:1px dashed var(--line);
+    cursor:pointer;
+  }
+  .meta-option:first-of-type{border-top:none;}
+  .meta-check{
+    width:16px;height:16px;
+    border:1.5px solid var(--ink-faint);
+    border-radius:3px;
+    flex-shrink:0;
+    position:relative;
+  }
+  .meta-check.checked{background:var(--green);border-color:var(--green);}
+  .meta-check.checked::after{
+    content:"✓";
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:11px;
+  }
+  .meta-option .m-name{font-size:13.5px;color:var(--ink);flex:1;}
+  .meta-option .m-tag{font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);}
+  .meta-option.checked .m-tag{color:var(--green);font-weight:bold;}
+  .meta-option.add-new .m-name{color:var(--ink-soft);}
+
+  .btn-primary{
+    display:block;
+    width:100%;
+    text-align:center;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--font-display);
+    font-size:14px;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    padding:13px;
+    border-radius:4px;
+    border:none;
+    margin-top:6px;
+  }
+
+  .product-list-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px 4px;
+    border-top:1px dashed var(--line);
+  }
+  .product-list-row:first-of-type{border-top:none;}
+  .p-thumb{
+    width:34px;height:34px;
+    background:var(--paper-dark);
+    border:1px solid var(--line);
+    border-radius:3px;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);
+    font-size:9px;
+    color:var(--ink-faint);
+  }
+  .p-info{flex:1;}
+  .p-name{font-size:13.5px;color:var(--ink);}
+  .p-variants{font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);}
+  .p-range{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);text-align:right;}
+
+  .search-bar{
+    display:flex;
+    align-items:center;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:9px 12px;
+    margin-bottom:6px;
+    font-size:13px;
+    color:var(--ink-faint);
+    font-family:var(--font-mono);
+  }
+
+  .tabbar{
+    display:flex;
+    border-top:1px solid var(--ink);
+    background:var(--paper);
+    flex-shrink:0;
+  }
+  .tab{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    padding:9px 0 12px;
+    cursor:pointer;
+    color:var(--ink-faint);
+  }
+  .tab.active{color:var(--ink);}
+  .tab .ic{
+    width:20px;height:20px;
+    position:relative;
+  }
+  .tab .lbl{
+    font-family:var(--font-mono);
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .tab.active .lbl{font-weight:bold;}
+
+  .pane{display:none;}
+  .pane.active{display:block;}
+
+  svg{overflow:visible;}
+</style>
+</head>
+<body>
+
+<div class="device">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●●</span>
+    </div>
+
+    <div class="topbar" id="topbar">
+      <p class="eyebrow" id="eyebrow">Oggi, sabato</p>
+      <h1 id="pagetitle">Lista della spesa</h1>
+    </div>
+    <div class="barcode-divider"></div>
+
+    <div class="content">
+
+      <!-- PANE 1: LISTA -->
+      <div class="pane active" id="pane-lista">
+        <div class="flatten-bar">
+          <p class="flatten-label">Appiattisci su un negozio</p>
+          <div class="chip-row" id="chip-row"></div>
+        </div>
+        <div id="lista-dynamic"></div>
+
+        <div class="modal-overlay" id="info-modal">
+          <div class="modal-card">
+            <div class="modal-img">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-9 9"/></svg>
+              <button class="modal-close" id="info-close">✕</button>
+            </div>
+            <div class="modal-body">
+              <p class="modal-name" id="info-name">—</p>
+              <p class="modal-sub" id="info-sub">foto scattata durante la scansione</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-overlay" id="add-modal">
+          <div class="modal-card">
+            <div class="add-modal-body">
+              <div class="add-modal-icon" id="add-modal-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 0-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3"/><circle cx="12" cy="12" r="3.2"/></svg>
+              </div>
+              <p class="add-modal-title" id="add-modal-title">Nuovo formato</p>
+              <p class="add-modal-sub" id="add-modal-sub">—</p>
+              <div class="add-modal-actions" id="add-modal-actions"></div>
+              <button class="btn-primary" style="background:none;color:var(--ink-soft);border:1px solid var(--line);margin-top:8px;" id="add-modal-cancel">Annulla</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 2: CONFRONTA -->
+      <div class="pane" id="pane-confronta">
+        <div class="search-bar"><span>Cerca meta-prodotto…</span></div>
+
+        <div class="compare-card">
+          <div class="compare-title">Passata di pomodoro rustica</div>
+          <div class="compare-sub">6 prodotti collegati · aggiornato 2 giorni fa</div>
+          <div class="rank-row">
+            <div class="rank-badge rank-1">1</div>
+            <div class="rank-shop">Consorzio — Mutti rustica 400g</div>
+            <div class="rank-price best">€1,79</div>
+          </div>
+          <div class="rank-row">
+            <div class="rank-badge rank-2">2</div>
+            <div class="rank-shop">Lidl — Italiamo rustica 400g</div>
+            <div class="rank-price">€1,95</div>
+          </div>
+          <div class="rank-row">
+            <div class="rank-badge rank-3">3</div>
+            <div class="rank-shop">Iper — Cirio rustica 400g</div>
+            <div class="rank-price">€2,30</div>
+          </div>
+          <span class="save-tag">▾ 22% risparmio vs. media</span>
+        </div>
+
+        <div class="compare-card">
+          <div class="compare-title">Tonno sott'olio</div>
+          <div class="compare-sub">4 prodotti collegati · aggiornato ieri</div>
+          <div class="rank-row">
+            <div class="rank-badge rank-1">1</div>
+            <div class="rank-shop">Consorzio — Rio Mare 3x80g</div>
+            <div class="rank-price best">€2,15</div>
+          </div>
+          <div class="rank-row">
+            <div class="rank-badge rank-2">2</div>
+            <div class="rank-shop">Iper — As do Mar 3x80g</div>
+            <div class="rank-price">€2,60</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 3: SCANSIONA -->
+      <div class="pane" id="pane-scansiona">
+        <div class="scan-context" id="scan-context" style="display:none;"></div>
+
+        <div id="scan-slots"></div>
+
+        <p class="section-label">Conferma dati</p>
+        <div id="confirm-card"></div>
+
+        <p class="section-label">Collega a meta-prodotto/i</p>
+        <div class="meta-select" id="meta-options"></div>
+
+        <p id="confirm-summary" class="confirm-summary"></p>
+        <button class="btn-primary">Salva prezzo</button>
+      </div>
+
+      <!-- PANE 4: PRODOTTI -->
+      <div class="pane" id="pane-prodotti">
+        <div class="search-bar"><span>Cerca prodotto o marca…</span></div>
+
+        <p class="section-label">Meta-prodotti · 18</p>
+        <div class="product-list-row">
+          <div class="p-thumb">IMG</div>
+          <div class="p-info"><div class="p-name">Passata rustica</div><div class="p-variants">6 marche · 3 supermercati</div></div>
+          <div class="p-range">€1,79–2,30</div>
+        </div>
+        <div class="product-list-row">
+          <div class="p-thumb">IMG</div>
+          <div class="p-info"><div class="p-name">Tonno sott'olio</div><div class="p-variants">4 marche · 2 supermercati</div></div>
+          <div class="p-range">€2,15–2,60</div>
+        </div>
+        <div class="product-list-row">
+          <div class="p-thumb">IMG</div>
+          <div class="p-info"><div class="p-name">Latte fresco intero</div><div class="p-variants">3 marche · 2 supermercati</div></div>
+          <div class="p-range">€1,29–1,45</div>
+        </div>
+        <div class="product-list-row">
+          <div class="p-thumb">IMG</div>
+          <div class="p-info"><div class="p-name">Pasta di semola</div><div class="p-variants">5 marche · 3 supermercati</div></div>
+          <div class="p-range">€0,79–1,10</div>
+        </div>
+        <div class="product-list-row">
+          <div class="p-thumb">IMG</div>
+          <div class="p-info"><div class="p-name">Olio extravergine</div><div class="p-variants">2 marche · 1 supermercato</div></div>
+          <div class="p-range">€6,90</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="fab" id="fab">+</div>
+
+    <div class="tabbar">
+      <div class="tab active" data-pane="lista" data-title="Lista della spesa" data-eyebrow="Oggi, sabato">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12l-1 13H7L6 3z"/><path d="M9 8h6M9 11h6"/><circle cx="9" cy="19" r="1.4"/><circle cx="16" cy="19" r="1.4"/></svg>
+        <span class="lbl">Lista</span>
+      </div>
+      <div class="tab" data-pane="confronta" data-title="Confronto prezzi" data-eyebrow="Best buy list">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
+        <span class="lbl">Confronta</span>
+      </div>
+      <div class="tab" data-pane="scansiona" data-title="Scansiona prodotto" data-eyebrow="Barcode + prezzo">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 0-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3M7 9v6M11 9v6M14 9v6M17 9v6"/></svg>
+        <span class="lbl">Scansiona</span>
+      </div>
+      <div class="tab" data-pane="prodotti" data-title="Meta-prodotti" data-eyebrow="Catalogo">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+        <span class="lbl">Prodotti</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const listItems = [
+    { name:"Passata rustica", variants:[
+        { shop:"Consorzio", brand:"Mutti rustica 400g",     price:1.79, hasImage:true },
+        { shop:"Lidl",      brand:"Italiamo rustica 400g",  price:1.95, hasImage:true },
+        { shop:"Iper",      brand:"Cirio rustica 400g",     price:2.30, hasImage:false }
+      ]},
+    { name:"Tonno sott'olio", variants:[
+        { shop:"Consorzio", brand:"Rio Mare 3x80g",   price:2.15, hasImage:true },
+        { shop:"Iper",      brand:"As do Mar 3x80g",  price:2.60, hasImage:false }
+      ]},
+    { name:"Pasta di semola 1kg", variants:[
+        { shop:"Consorzio", brand:"Barilla",  price:0.89, hasImage:false }
+      ]},
+    { name:"Latte fresco intero", variants:[
+        { shop:"Lidl",      brand:"Latteria Alpina 1L",     price:1.29, hasImage:true },
+        { shop:"Iper",      brand:"Centrale del Latte 1L",  price:1.45, hasImage:true },
+        { shop:"Consorzio", brand:"Granarolo 1L",           price:1.55, hasImage:true },
+        { shop:"Consorzio", brand:"Parmalat 1L",            price:1.62, hasImage:false }
+      ]},
+    { name:"Uova cat. A x12", variants:[
+        { shop:"Lidl", brand:"Uova fresche x12", price:2.49, hasImage:false }
+      ]},
+    { name:"Olio extravergine", variants:[] }
+  ];
+  const shops = ["Consorzio","Lidl","Iper"];
+  const fmt = v => "€" + v.toFixed(2).replace(".", ",");
+
+  function bestVariant(variants){
+    if(!variants.length) return null;
+    return variants.reduce((a,b) => b.price < a.price ? b : a);
+  }
+
+  function esc(s){ return s.replace(/'/g,"\\'"); }
+
+  function fotoState(variant){
+    if(!variant) return "no-data";
+    return variant.hasImage ? "ok" : "no-photo";
+  }
+
+  function infoBtn(item, variant, shopLabel){
+    const state = fotoState(variant);
+    if(state === "ok"){
+      return `<button class="item-info-btn" onclick="openInfo('${esc(item.name)}','${esc(variant.brand)}')">i</button>`;
+    }
+    if(state === "no-photo"){
+      return `<button class="item-info-btn state-photo" onclick="openAddFlow('${esc(item.name)}','${esc(variant.brand)}','photo','${shopLabel?esc(shopLabel):""}')">i</button>`;
+    }
+    return `<button class="item-info-btn state-nodata" onclick="openAddFlow('${esc(item.name)}','','data','${shopLabel?esc(shopLabel):""}')">i</button>`;
+  }
+
+  function renderGrouped(){
+    const groups = {};
+    const unassigned = [];
+    listItems.forEach(item => {
+      const best = bestVariant(item.variants);
+      if(!best){ unassigned.push(item); return; }
+      (groups[best.shop] = groups[best.shop] || []).push({item, variant:best});
+    });
+
+    let html = "";
+    Object.entries(groups).forEach(([shop, entries]) => {
+      html += `<p class="section-label">${shop} · ${entries.length} prodotti</p>
+      <div class="shop-group">
+        <div class="shop-head"><span class="name">${shop}</span><span class="count">${entries.length} di ${entries.length}</span></div>
+        ${entries.map(({item, variant}) => `
+          <div class="item-row">
+            <div class="item-check"></div>
+            <span class="item-name">${item.name}</span>
+            <div class="item-leader"></div>
+            <span class="item-price">${fmt(variant.price)}</span>
+            ${infoBtn(item, variant, shop)}
+          </div>`).join("")}
+      </div>`;
+    });
+
+    if(unassigned.length){
+      html += `<p class="section-label">Da assegnare · ${unassigned.length} prodotto${unassigned.length>1?"i":""}</p>
+      <div class="shop-group">
+        <div class="shop-head" style="background:var(--amber);"><span class="name">Nessun prezzo salvato</span><span class="count">${unassigned.length}</span></div>
+        ${unassigned.map(item => `
+          <div class="item-row">
+            <div class="item-check"></div>
+            <span class="item-name">${item.name}</span>
+            <div class="item-leader"></div>
+            <span class="item-price" style="color:var(--amber);">— — —</span>
+            ${infoBtn(item, null, null)}
+          </div>`).join("")}
+      </div>`;
+    }
+    document.getElementById("lista-dynamic").innerHTML = html;
+  }
+
+  function renderFlattened(shop){
+    let anyAsterisk = false;
+
+    const rows = listItems.map(item => {
+      const globalBest = bestVariant(item.variants);
+      const here = item.variants.filter(v => v.shop === shop);
+
+      if(!here.length){
+        return `<div class="item-row">
+          <div class="item-check"></div>
+          <span class="item-name">${item.name}</span>
+          <div class="item-leader"></div>
+          <span class="item-price" style="color:var(--red);">nessun formato qui</span>
+          ${infoBtn(item, null, shop)}
+        </div>`;
+      }
+
+      const chosen = bestVariant(here);
+      const multi = here.length > 1;
+      if(multi) anyAsterisk = true;
+      const delta = globalBest ? chosen.price - globalBest.price : 0;
+      const deltaHtml = !globalBest || delta <= 0.004
+        ? `<span class="item-delta d-zero">(miglior prezzo)</span>`
+        : `<span class="item-delta d-pos">(+${fmt(delta)} vs ${globalBest.shop})</span>`;
+
+      return `<div class="item-row">
+        <div class="item-check"></div>
+        <span class="item-name">${item.name}${multi ? ' <span class="item-delta" style="color:var(--amber);">*</span>' : ''}</span>
+        <div class="item-leader"></div>
+        ${deltaHtml}
+        <span class="item-price">${fmt(chosen.price)}</span>
+        ${infoBtn(item, chosen, shop)}
+      </div>`;
+    }).join("");
+
+    const totalHere = listItems.reduce((sum, item) => {
+      const here = item.variants.filter(v => v.shop === shop);
+      const chosen = bestVariant(here) || bestVariant(item.variants);
+      return sum + (chosen ? chosen.price : 0);
+    }, 0);
+    const totalBest = listItems.reduce((sum, item) => sum + (bestVariant(item.variants)?.price ?? 0), 0);
+    const extra = totalHere - totalBest;
+
+    document.getElementById("lista-dynamic").innerHTML = `
+      <p class="section-label">${shop} · tutti i ${listItems.length} prodotti</p>
+      <div class="shop-group">
+        <div class="shop-head"><span class="name">${shop}</span><span class="count">tutto qui</span></div>
+        ${rows}
+      </div>
+      ${anyAsterisk ? `<p class="flatten-note">* più formati disponibili qui: mostrato il più economico come esempio, non necessariamente quello che avevi in lista — tocca (i) per vedere quale.</p>` : ''}
+      <p class="flatten-note">Facendo tutta la spesa qui rimetti <b>${fmt(Math.max(extra,0))}</b> rispetto a comprare ogni prodotto nel suo negozio migliore.</p>
+    `;
+  }
+
+  function setupChips(){
+    const row = document.getElementById("chip-row");
+    let html = `<div class="chip active" data-shop="">Nessuno</div>`;
+    shops.forEach(s => html += `<div class="chip" data-shop="${s}">${s}</div>`);
+    row.innerHTML = html;
+    row.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        row.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        const shop = chip.dataset.shop;
+        shop ? renderFlattened(shop) : renderGrouped();
+      });
+    });
+  }
+
+  function openInfo(name, brand){
+    document.getElementById("info-name").textContent = name;
+    document.getElementById("info-sub").textContent = brand ? brand + " — foto scattata durante la scansione" : "foto scattata durante la scansione";
+    document.getElementById("info-modal").classList.add("open");
+  }
+  document.getElementById("info-close").addEventListener("click", () => {
+    document.getElementById("info-modal").classList.remove("open");
+  });
+  document.getElementById("info-modal").addEventListener("click", e => {
+    if(e.target.id === "info-modal") e.target.classList.remove("open");
+  });
+
+  function openAddFlow(name, brand, kind, shop){
+    const icon = document.getElementById("add-modal-icon");
+    const title = document.getElementById("add-modal-title");
+    const sub = document.getElementById("add-modal-sub");
+    const actions = document.getElementById("add-modal-actions");
+
+    if(kind === "photo"){
+      icon.style.background = "var(--amber-bg)";
+      icon.style.color = "var(--amber)";
+      title.textContent = "Aggiungi foto";
+      sub.innerHTML = `Formato noto: <b>${brand}</b>. Prezzo e marca sono già salvati, manca solo la foto per riconoscerlo davanti allo scaffale.`;
+      actions.innerHTML = `<button class="btn-primary">Scatta foto del formato</button>`;
+      actions.querySelector("button").onclick = () => goToScanFor(name, `Stai fotografando <b>${brand}</b> — marca e prezzo sono già noti, serve solo la foto prodotto.`, "photo-only");
+    } else {
+      icon.style.background = "var(--red-bg)";
+      icon.style.color = "var(--red)";
+      title.textContent = "Prodotto mai visto";
+      sub.innerHTML = shop
+        ? `Non hai ancora nessun prodotto di <b>${name}</b> salvato per <b>${shop}</b>. Probabilmente servono tutte e 3 le foto: da lì deduciamo marca, formato e prezzo.`
+        : `Non hai ancora nessun prezzo salvato per <b>${name}</b> in nessun supermercato. Servono tutte e 3 le foto per crearlo da zero.`;
+      actions.innerHTML = `<button class="btn-primary">Scatta le 3 foto</button>`;
+      actions.querySelector("button").onclick = () => goToScanFor(name, `Prodotto mai visto per <b>${name}</b>${shop ? " — " + shop : ""}. Scatta barcode, cartellino e foto: marca e formato verranno dedotti, il resto lo confermi tu.`, "need-all");
+    }
+    document.getElementById("add-modal").classList.add("open");
+  }
+  document.getElementById("add-modal-cancel").addEventListener("click", () => {
+    document.getElementById("add-modal").classList.remove("open");
+  });
+  document.getElementById("add-modal").addEventListener("click", e => {
+    if(e.target.id === "add-modal") e.target.classList.remove("open");
+  });
+
+  const scanIcons = {
+    barcode: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5v14M8 5v14M11 5v14M15 5v14M18 5v14M21 5v14" stroke-dasharray="1 2"/></svg>',
+    cartellino: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 3 11v9a2 2 0 0 0 2 2h6M21 11 12 2M15 22l1.5-1.5M18 19l3-3-3-3-3 3 3 3z"/></svg>',
+    prodotto: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-9 9"/></svg>'
+  };
+
+  const scanMeta = {
+    barcode:   { title:"Codice a barre",  purpose:"Deduce nome, marca e formato (peso/pezzi) del prodotto." },
+    cartellino:{ title:"Cartellino prezzo", purpose:"Legge prezzo confezione e prezzo al kg/litro." },
+    prodotto:  { title:"Foto prodotto",   purpose:"L'unica salvata: serve a riconoscerlo sullo scaffale." }
+  };
+
+  let scanState = {
+    barcode:    { captured:true,  outcome:"found" },
+    cartellino: { captured:true },
+    prodotto:   { captured:false },
+    highlight:  "prodotto"
+  };
+
+  let productData = { marca:"Mutti", formato:"Rustica, 400g", prezzo:"1,79", prezzoUnit:"4,48" };
+  let confirmedFields = { marca:false, formato:false, prezzo:false, prezzoUnit:false };
+
+  function barcodeDetail(){
+    const b = scanState.barcode;
+    if(!b.captured) return "Non ancora scattata";
+    if(b.outcome === "found") return "8 001120 512680 → riconosciuto";
+    if(b.outcome === "notfound") return "8 001120 512680 → nessuna corrispondenza nel database";
+    return "foto scattata, ma il codice non è leggibile";
+  }
+  function cartellinoDetail(){
+    return scanState.cartellino.captured ? "Letto: verifica i valori qui sotto" : "Non ancora scattata";
+  }
+  function prodottoDetail(){
+    return scanState.prodotto.captured ? "Foto salvata" : "Non ancora scattata";
+  }
+
+  function renderScanSlots(){
+    const order = ["barcode","cartellino","prodotto"];
+    document.getElementById("scan-slots").innerHTML = order.map(key => {
+      const s = scanState[key];
+      const m = scanMeta[key];
+      const isHi = scanState.highlight === key;
+      const detail = key === "barcode" ? barcodeDetail() : key === "cartellino" ? cartellinoDetail() : prodottoDetail();
+      const outcomeChips = (key === "barcode" && s.captured) ? `
+        <div class="outcome-row">
+          <div class="outcome-chip ${s.outcome === "found" ? "active-found" : ""}" onclick="setBarcodeOutcome('found')">Riconosciuto</div>
+          <div class="outcome-chip ${s.outcome === "notfound" ? "active-notfound" : ""}" onclick="setBarcodeOutcome('notfound')">Non trovato</div>
+          <div class="outcome-chip ${s.outcome === "unreadable" ? "active-unreadable" : ""}" onclick="setBarcodeOutcome('unreadable')">Illeggibile</div>
+        </div>` : "";
+      return `
+      <div class="scan-card ${isHi ? "highlight" : ""}">
+        <div class="scan-card-head">
+          <div class="scan-card-icon ${s.captured ? "captured" : (isHi ? "highlight" : "")}">${scanIcons[key]}</div>
+          <div class="scan-card-titlerow">
+            <span class="scan-card-title">${m.title}</span>
+            ${isHi ? '<span class="scan-card-tag">consigliata</span>' : ''}
+          </div>
+        </div>
+        <p class="scan-card-purpose">${m.purpose}</p>
+        <div class="scan-card-detail ${s.captured ? "" : "pending"}">${detail}</div>
+        ${outcomeChips}
+        <div class="scan-card-actions">
+          <button class="scan-card-btn" onclick="toggleScanSlot('${key}')">${s.captured ? "Rifai foto" : "Scatta foto"}</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  function toggleScanSlot(key){
+    const s = scanState[key];
+    if(!s.captured){
+      s.captured = true;
+      if(key === "barcode"){
+        s.outcome = "found";
+        productData.marca = "Mutti";
+        productData.formato = "Rustica, 400g";
+      }
+      if(key === "cartellino"){
+        productData.prezzo = "1,79";
+        productData.prezzoUnit = "4,48";
+      }
+      if(scanState.highlight === key) scanState.highlight = null;
+    } else {
+      s.captured = false;
+      if(key === "barcode"){
+        delete s.outcome;
+        productData.marca = ""; productData.formato = "";
+        confirmedFields.marca = false; confirmedFields.formato = false;
+      }
+      if(key === "cartellino"){
+        productData.prezzo = ""; productData.prezzoUnit = "";
+        confirmedFields.prezzo = false; confirmedFields.prezzoUnit = false;
+      }
+    }
+    renderScanSlots();
+    renderConfirmCard();
+  }
+
+  function setBarcodeOutcome(outcome){
+    scanState.barcode.outcome = outcome;
+    if(outcome === "found"){
+      productData.marca = "Mutti";
+      productData.formato = "Rustica, 400g";
+    } else {
+      productData.marca = "";
+      productData.formato = "";
+    }
+    confirmedFields.marca = false;
+    confirmedFields.formato = false;
+    renderScanSlots();
+    renderConfirmCard();
+  }
+
+  function confirmFieldTag(fieldKey, sourceCaptured, sourceOk){
+    if(confirmedFields[fieldKey]) return { cls:"tag-confirmed", text:"confermato" };
+    if(!sourceCaptured) return { cls:"tag-wait", text:"in attesa" };
+    if(!sourceOk) return { cls:"tag-manual", text:"inserisci tu" };
+    return { cls:"tag-verify", text:"dedotto, verifica" };
+  }
+
+  function renderConfirmCard(){
+    const bOk = scanState.barcode.captured && scanState.barcode.outcome === "found";
+    const rows = [
+      { key:"marca",      label:"Marca",              source:scanState.barcode.captured, ok:bOk, placeholder:"es. Mutti" },
+      { key:"formato",    label:"Formato",            source:scanState.barcode.captured, ok:bOk, placeholder:"es. 400g" },
+      { key:"prezzo",     label:"Prezzo confezione",  source:scanState.cartellino.captured, ok:scanState.cartellino.captured, placeholder:"es. 1,79" },
+      { key:"prezzoUnit", label:"Prezzo al kg / litro", source:scanState.cartellino.captured, ok:scanState.cartellino.captured, placeholder:"es. 4,48" }
+    ];
+    document.getElementById("confirm-card").innerHTML = rows.map(r => {
+      const tag = confirmFieldTag(r.key, r.source, r.ok);
+      return `
+      <div class="confirm-row">
+        <div class="confirm-row-top">
+          <span class="confirm-label">${r.label}</span>
+          <span class="confirm-tag ${tag.cls}">${tag.text}</span>
+        </div>
+        <div class="confirm-inputrow">
+          <input class="confirm-input" placeholder="${r.placeholder}" value="${productData[r.key]}"
+            oninput="updateProductField('${r.key}', this.value)">
+          <button class="confirm-check ${confirmedFields[r.key] ? "on" : ""}" onclick="toggleConfirmed('${r.key}')" aria-label="Conferma questo campo">✓</button>
+        </div>
+      </div>`;
+    }).join("");
+    renderConfirmSummary();
+  }
+
+  function updateProductField(key, value){
+    productData[key] = value;
+    confirmedFields[key] = false;
+    renderConfirmSummary();
+    const tagCells = document.querySelectorAll("#confirm-card .confirm-tag");
+  }
+
+  function toggleConfirmed(key){
+    confirmedFields[key] = !confirmedFields[key];
+    renderConfirmCard();
+  }
+
+  function renderConfirmSummary(){
+    const rows = ["marca","formato","prezzo","prezzoUnit"];
+    const relevant = rows.filter(k => (k === "marca" || k === "formato") ? scanState.barcode.captured : scanState.cartellino.captured);
+    const missing = relevant.filter(k => !confirmedFields[k]).length;
+    const el = document.getElementById("confirm-summary");
+    if(!relevant.length){
+      el.textContent = "Scatta le foto per iniziare a compilare i dati.";
+      el.className = "confirm-summary";
+    } else if(missing === 0){
+      el.textContent = "Tutti i dati sono stati confermati.";
+      el.className = "confirm-summary all-ok";
+    } else {
+      el.textContent = `${missing} campo${missing>1?"i":""} ancora da confermare prima di salvare.`;
+      el.className = "confirm-summary";
+    }
+  }
+
+  function presetScan(kind){
+    if(kind === "photo-only"){
+      scanState = {
+        barcode:    { captured:true,  outcome:"found" },
+        cartellino: { captured:true },
+        prodotto:   { captured:false },
+        highlight:  "prodotto"
+      };
+      productData = { marca:"Mutti", formato:"Rustica, 400g", prezzo:"1,79", prezzoUnit:"4,48" };
+      confirmedFields = { marca:true, formato:true, prezzo:true, prezzoUnit:true };
+    } else {
+      scanState = {
+        barcode:    { captured:false },
+        cartellino: { captured:false },
+        prodotto:   { captured:false },
+        highlight:  null
+      };
+      productData = { marca:"", formato:"", prezzo:"", prezzoUnit:"" };
+      confirmedFields = { marca:false, formato:false, prezzo:false, prezzoUnit:false };
+    }
+    renderScanSlots();
+    renderConfirmCard();
+  }
+
+  let metaOptions = [
+    { name:"Passata di pomodoro rustica", checked:true,  tag:"dalla foto" },
+    { name:"Sughi pronti",                checked:false, tag:"" }
+  ];
+
+  function renderMetaOptions(){
+    const rows = metaOptions.map((o,i) => `
+      <div class="meta-option ${o.checked ? "checked" : ""}" onclick="toggleMetaOption(${i})">
+        <div class="meta-check ${o.checked ? "checked" : ""}"></div>
+        <span class="m-name">${o.name}</span>
+        ${o.tag ? `<span class="m-tag">${o.tag}</span>` : ""}
+      </div>`).join("");
+    document.getElementById("meta-options").innerHTML = rows + `
+      <div class="meta-option add-new" onclick="addNewMetaOption()">
+        <span class="m-name">+ Crea nuovo meta-prodotto</span>
+      </div>`;
+  }
+  function toggleMetaOption(i){
+    metaOptions[i].checked = !metaOptions[i].checked;
+    renderMetaOptions();
+  }
+  function addNewMetaOption(){
+    const name = prompt("Nome del nuovo meta-prodotto:");
+    if(name && name.trim()){
+      metaOptions.push({ name:name.trim(), checked:true, tag:"nuovo" });
+      renderMetaOptions();
+    }
+  }
+
+  function goToScanFor(metaName, noteHtml, presetKind){
+    document.getElementById("add-modal").classList.remove("open");
+
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".pane").forEach(p => p.classList.remove("active"));
+    const scanTab = document.querySelector('.tab[data-pane="scansiona"]');
+    scanTab.classList.add("active");
+    document.getElementById("pane-scansiona").classList.add("active");
+    document.getElementById("pagetitle").textContent = scanTab.dataset.title;
+    document.getElementById("eyebrow").textContent = scanTab.dataset.eyebrow;
+    document.getElementById("fab").style.display = "none";
+
+    const ctx = document.getElementById("scan-context");
+    ctx.innerHTML = noteHtml;
+    ctx.style.display = "block";
+
+    presetScan(presetKind);
+
+    metaOptions = [
+      { name:metaName, checked:true, tag:"dalla lista" },
+      { name:"Meta-prodotto simile", checked:false, tag:"" }
+    ];
+    renderMetaOptions();
+  }
+
+  renderScanSlots();
+  renderConfirmCard();
+  renderMetaOptions();
+
+  setupChips();
+  renderGrouped();
+
+  const tabs = document.querySelectorAll('.tab');
+  const panes = document.querySelectorAll('.pane');
+  const title = document.getElementById('pagetitle');
+  const eyebrow = document.getElementById('eyebrow');
+  const fab = document.getElementById('fab');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panes.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('pane-' + tab.dataset.pane).classList.add('active');
+      title.textContent = tab.dataset.title;
+      eyebrow.textContent = tab.dataset.eyebrow;
+      fab.style.display = tab.dataset.pane === 'lista' ? 'flex' : 'none';
+      fab.textContent = tab.dataset.pane === 'prodotti' ? '+' : '+';
+    });
+  });
+</script>
+
+</body>
+</html>

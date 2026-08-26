@@ -3,6 +3,10 @@
 **Versione:** 0.1\
 **Stato:** Draft
 
+Materiale di visione per le fasi future (UI mobile, acquisizione a 3
+foto, confronto prezzi) in `docs/vision/` — non è scope approvato,
+solo riferimento per quando si arriva alle fasi 3.2/4/6/7.
+
 ## Fase 0 --- PoC tecnico
 
 **Stato: COMPLETATA**
