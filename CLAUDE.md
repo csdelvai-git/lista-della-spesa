@@ -89,6 +89,32 @@ documentazione.
 
 ------------------------------------------------------------------------
 
+# Git e GitHub
+
+Il remote `origin` è **HTTPS**
+(`https://github.com/csdelvai-git/lista-della-spesa.git`), non SSH: la
+chiave SSH dell'utente è gestita da 1Password ma non risulta
+raggiungibile da git in questo ambiente (`~/.ssh/config`/
+`SSH_AUTH_SOCK` non puntano al suo agente), quindi `git push` via SSH
+fallisce sempre con "Permission denied (publickey)" — inutile
+riprovare quella via.
+
+L'autenticazione passa da **`gh` (GitHub CLI)**: installato via
+Homebrew, autenticato come `csdelvai-git` con `gh auth login --web`
+(flusso interattivo: genera un codice e un URL, l'utente conferma nel
+browser — non automatizzabile, va chiesto a lui), poi `gh auth setup-git`
+ha configurato `gh` come credential helper di git. Con questo, `git
+push`/`git pull` funzionano direttamente da riga di comando, anche dal
+Bash tool di Claude Code, senza altri passaggi manuali.
+
+Se un push fallisce per credenziali: verificare `gh auth status`
+prima di cambiare altro. Se risulta sloggato, richiedere all'utente di
+rifare `gh auth login --web` (interattivo, non eseguibile da solo).
+
+Se si crea un branch prima di committere (prassi di default quando si
+è su `main`), il push va comunque fatto esplicitamente
+(`git push -u origin <branch>`) — non è automatico.
+
 # Comunicazione
 
 Prima di introdurre cambiamenti architetturali:
