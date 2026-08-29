@@ -18,6 +18,11 @@ DECISIONS.md.
 - **Manca** `scontrino-schema.sql` (citato nel file di stato ma non
   ancora portato in questo repository) — se serve, va recuperato
   dall'altra sessione prima di usarlo come riferimento per lo schema.
+- `test-acquisizione-foto.md` — prima verifica empirica (29/08/2026) su
+  foto reali di spesa: barcode utile solo per prodotti confezionati a
+  marchio (EAN pubblico), inutile per prodotti a peso da banco
+  gastronomia (codice bilancia interno al negozio); OCR del cartellino
+  copre invece il 100% dei casi osservati.
 
 ## Dove si aggancia alla ROADMAP
 

@@ -288,3 +288,80 @@ Il tema chiaro/scuro è rimandato a un incremento separato e
 successivo: è un asse ortogonale alla densità (tocca solo i colori,
 non il markup delle voci); trattarlo insieme avrebbe reso più
 difficile verificare i due cambiamenti singolarmente.
+
+### D-030 --- Scope acquisizione foto (3.2): due modalità dentro lo scope, una rimandata
+
+Test empirico su 16 foto reali di spesa (29/08/2026, vedi
+`docs/vision/test-acquisizione-foto.md`) prima di disegnare la UI di
+scatto/upload cartellino.
+
+#### Risultato del test
+
+Il barcode si comporta in due modi diversi a seconda del prodotto: -
+sui **prodotti confezionati a marchio**, è un EAN-13 standard GS1,
+identico sul cartellino di scaffale e sulla confezione, risolvibile
+in marca/formato con un database pubblico esterno (es. Open Food
+Facts) — non serve alcun accesso ai sistemi del supermercato; - sui
+**prodotti a peso da banco gastronomia**, il codice (prefisso "2")
+è generato dalla bilancia del negozio e non è risolvibile
+esternamente — ma questi prodotti riportano comunque nome/prezzo/peso
+in chiaro sull'etichetta, quindi non serve decodificare il barcode
+per averli.
+
+La lettura testuale del cartellino copre il 100% dei casi osservati;
+il barcode aggiunge valore solo come scorciatoia per il sottoinsieme
+"prodotti a marchio", e richiede comunque un servizio esterno.
+
+#### Decisione sullo scope
+
+La UI di acquisizione (Fase 3.2) copre due modalità d'uso: 1.
+**cattura differita** — foto scattate al supermercato, upload/
+completamento dati in un secondo momento; 2. **analisi in loop,
+opzionale** — dopo l'upload, se c'è connessione e l'utente lo
+richiede, il sistema propone i dati letti dalla foto per conferma
+(D-006). Questo secondo punto anticipa deliberatamente una fetta
+della Fase 4 (estrazione dati), con consenso esplicito dell'utente
+in questa conversazione — non uno sviluppo autonomo di funzionalità
+future (CLAUDE.md).
+
+Una terza modalità emersa in discussione — scansione barcode a casa
+con lookup su database pubblico, incrociata con foto dello scontrino
+completo — resta **fuori scope**, non solo per la Fase 3.2 ma anche
+come sviluppo immediato di Fase 4: introdurrebbe un'entità di
+dominio nuova (uno scontrino con più righe, oggi non modellato — il
+dominio attuale ha rilevazioni di prezzo singole legate a un
+cartellino, non a uno scontrino) e non si tocca il dominio senza
+prima aggiornare la documentazione e avere conferma esplicita
+(CLAUDE.md). Resta annotata come idea futura in
+`docs/vision/test-acquisizione-foto.md`.
+
+#### Modello di foto (raffinato dopo l'approfondimento sui casi limite)
+
+Il modello a 3 foto indipendenti del mockup "Scontrino" (barcode /
+cartellino / foto prodotto, vedi `docs/vision/`) si riduce, alla luce
+dei test (`docs/vision/test-acquisizione-foto.md`, Test 3), a: - **una
+foto essenziale** — il cartellino, o eccezionalmente la confezione/
+involucro del prodotto quando il cartellino non riporta il nome (caso
+osservato: bollino bilancia con solo prezzo/peso/barcode, nome
+stampato sull'involucro). L'analisi in loop (punto 2 sopra) segnala
+*quale* dato manca e richiede lo scatto più adatto a colmarlo — non
+necessariamente un retake dello stesso tipo di foto; - **nessuna foto
+dedicata al barcode** — quando presente, il suo valore si legge già
+dal testo della foto del cartellino (verificato su tutto il campione
+di test); una foto/scan a parte servirebbe solo per la modalità 3
+(decodifica live + lookup pubblico), già rimandata sopra; - **una foto
+facoltativa del prodotto/scaffale** — non necessaria alla rilevazione
+di prezzo, pensata per il riconoscimento a scaffale nelle spese
+successive (Fase 6, Modalità Go); coerente con `images.kind =
+PACKAGE`, già ammesso nello schema ma fuori scope UI (Fase 3.2 in
+ROADMAP.md) — resta tale, non si costruisce ora.
+
+#### Guida di inquadratura in fotocamera
+
+Valutata e scartata come garanzia: un overlay guida (via
+`getUserMedia` + canvas) è tecnicamente possibile ma resta solo un
+suggerimento visivo, non un vincolo — l'utente può comunque scattare
+una foto tagliata o storta. La cattura userà l'input nativo del
+telefono (`<input capture>`, più semplice, nessuna dipendenza in
+più); l'affidabilità dell'inquadratura è verificata a posteriori
+dall'analisi in loop (punto 2 sopra), non prevenuta a priori.

@@ -133,8 +133,17 @@ DA_REVISIONARE/CONFERMATA/SCARTATA; - verificato con dati di test
 (inserimento con solo supermercato, con articolo, con formato e
 prezzo normalizzato; vincolo su source verificato anche in negativo).
 
-Da completare (3.1): - pagina app/prezzi.html; - gestione supermercati
-separata (nessuna creazione al volo, decisione 9.c).
+UI (3.1 — completata, non più in app/prezzi.html): l'inserimento
+manuale vive in `app/index.html` (Catalogo), non in una pagina a sé —
+sezione "Supermercati" (creazione + elenco, in un unico blocco
+comprimibile) e mini-form inline nella barra azioni quando si
+seleziona un formato (top-down, mentre si cura il catalogo); colonna
+"Prezzi" condivisa (sola visibilità) riusata anche in Lista, dove
+selezionare una rilevazione fissa una preferenza di supermercato
+sulla voce (`preferred_supermarket_id`, D-028) senza legarla alla
+rilevazione stessa. Verificato end-to-end via UI reale. Gestione
+supermercati resta separata, nessuna creazione al volo (decisione
+9.c).
 
 Completato (3.2 — solo schema e Storage, UI non ancora implementata):
 - tabella images (RLS attiva, policy permissive — D-027), collegata a
@@ -151,15 +160,39 @@ alla cancellazione della rilevazione (file fisico rimasto, come
 previsto), rimozione esplicita del file, rifiuto di un tipo di file
 non ammesso (test negativo). Dati e file di test rimossi.
 
-Da completare (3.2): - pagina app/prezzi.html con upload foto (stessa
-UI di 3.1, non ancora costruita).
+Test empirico (29/08/2026, prima della UI): analisi di 16 foto reali
+di spesa, vedi `docs/vision/test-acquisizione-foto.md`. Risultato
+rilevante per lo scope sotto — D-030.
 
-Rimandato: - OCR/AI (Fase 4).
+Da completare (3.2, scope ridefinito da D-030 dopo il test): - UI di
+scatto/upload foto cartellino in `app/index.html`, che copre due
+modalità d'uso, non un'unica sequenza obbligata: - **cattura
+differita**: N foto scattate al supermercato, accodate sul
+dispositivo, upload/completamento dati in un secondo momento (anche
+da un'altra sessione/posizione); - **analisi in loop, opzionale**: se
+c'è connessione e l'utente lo richiede, dopo l'upload di una foto il
+sistema propone i dati letti (nome/prezzo/prezzo unitario) **per
+campo**, non come giudizio unico sulla foto intera: ogni campo letto
+va confermato, quello mancante va richiesto in modo mirato — con lo
+scatto più adatto a colmarlo, non necessariamente un retake dello
+stesso tipo di foto (es. la confezione del prodotto invece del
+cartellino, se è lì che si trova il nome mancante); nessuna foto
+dedicata al barcode, il cui valore, quando presente, si legge già dal
+testo della foto del cartellino (modello di foto completo in D-030).
+Coerente con D-006 (Acquisizione→Proposta→Revisione→Conferma) —
+questo passo anticipa volutamente una fetta della Fase 4 (estrazione
+dati), con consenso esplicito, non come sviluppo autonomo di
+funzionalità future.
+
+Rimandato: - il resto della Fase 4 (suggerimenti, gestione
+incertezza su più campioni); - la modalità "barcode + scontrino"
+(D-030), che introdurrebbe un'entità di dominio nuova (scontrino
+multi-riga) non presente nel modello attuale.
 
 ## Fase 4 --- OCR e AI
 
-Implementazione: - estrazione dati; - suggerimenti; - gestione
-incertezza.
+Implementazione: - estrazione dati (parzialmente anticipata in 3.2,
+vedi D-030); - suggerimenti; - gestione incertezza.
 
 ## Fase 5 --- Storico prezzi
 
