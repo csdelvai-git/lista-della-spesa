@@ -31,18 +31,26 @@ export async function fetchPriceObservationsForFormat(formatId) {
   return data;
 }
 
+// Ritorna l'id della rilevazione creata (non solo un booleano): serve
+// alla coda foto (Fase 3.2, D-030) per collegarci l'immagine subito
+// dopo. I chiamanti che vogliono solo sapere se è andata bene possono
+// continuare a trattare il valore come truthy/falsy.
 export async function createPriceObservation({ supermarketId, articleId, formatId, packagePrice }) {
-  const { error } = await supabase.from('price_observations').insert({
-    supermarket_id: supermarketId,
-    article_id: articleId ?? null,
-    format_id: formatId ?? null,
-    package_price: packagePrice,
-  });
+  const { data, error } = await supabase
+    .from('price_observations')
+    .insert({
+      supermarket_id: supermarketId,
+      article_id: articleId ?? null,
+      format_id: formatId ?? null,
+      package_price: packagePrice,
+    })
+    .select('id')
+    .single();
 
   if (error) {
     alert(`Errore registrazione prezzo: ${error.message}`);
     console.error(error);
-    return false;
+    return null;
   }
-  return true;
+  return data.id;
 }

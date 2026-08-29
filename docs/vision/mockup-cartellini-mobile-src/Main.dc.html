@@ -1,0 +1,412 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root {
+      --bg: #0d1013;
+      --surface: #15191e;
+      --surface-2: #1d232a;
+      --border: #2a323b;
+      --border-soft: #20262d;
+      --text: #edf0f2;
+      --text-muted: #8b96a1;
+      --text-faint: #57626c;
+      --accent: #34d399;
+      --accent-strong: #1f7a56;
+      --accent-contrast: #06231a;
+      --accent-soft: rgba(52, 211, 153, 0.14);
+      --danger: #f87171;
+      --radius: 10px;
+      --radius-sm: 7px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-strong); }
+    ::-webkit-scrollbar { width: 0; height: 0; }
+    select { appearance: none; -webkit-appearance: none; }
+    .icon-btn:hover { background: var(--surface-2); color: var(--text); }
+    .queue-card:hover { border-color: var(--border); background: var(--surface); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--text); }
+    .btn-primary:disabled { opacity: .45; cursor: default; }
+    .btn-secondary:hover:not(:disabled) { background: var(--border); }
+    .btn-danger-outline:hover { background: rgba(248,113,113,.1); }
+    .btn-small:hover { border-color: var(--accent); }
+    select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    @keyframes dc-spin { to { transform: rotate(360deg); } }
+    @keyframes dc-toast-in { from { opacity: 0; transform: translate(-50%, 6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    .spinner { animation: dc-spin .8s linear infinite; }
+    .toast { animation: dc-toast-in .18s ease-out; }
+  </style>
+</helmet>
+
+<div style="width:390px;height:844px;background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden;position:relative;border-radius:28px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;gap:4px;padding:0 8px 0 4px;background:var(--surface);border-bottom:1px solid var(--border-soft);">
+    <sc-if value="{{hasBack}}" hint-placeholder-val="{{false}}">
+      <button class="icon-btn" onClick="{{onBack}}" aria-label="Indietro" style="width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text-muted);border-radius:var(--radius-sm);cursor:pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </sc-if>
+    <sc-if value="{{isQueue}}" hint-placeholder-val="{{true}}">
+      <div style="width:40px;flex-shrink:0;"></div>
+    </sc-if>
+    <div style="flex:1;font-size:.95rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{headerTitle}}</div>
+    <sc-if value="{{online}}" hint-placeholder-val="{{true}}">
+      <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--accent);background:var(--accent-soft);padding:4px 8px;border-radius:999px;white-space:nowrap;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 16a6.5 6.5 0 0 1 7 0"/><path d="M12 19.5h.01"/></svg>
+        Online
+      </div>
+    </sc-if>
+    <sc-if value="{{offline}}" hint-placeholder-val="{{false}}">
+      <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text-faint);background:var(--surface-2);border:1px solid var(--border);padding:4px 8px;border-radius:999px;white-space:nowrap;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M5 12.5a11 11 0 0 1 6.5-3.1"/><path d="M8.5 16a6.5 6.5 0 0 1 5-1.9"/><path d="M12 19.5h.01"/></svg>
+        Offline
+      </div>
+    </sc-if>
+    <button class="icon-btn" onClick="{{onReset}}" aria-label="Reimposta demo" style="width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text-muted);border-radius:var(--radius-sm);cursor:pointer;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.7"/><path d="M3 21v-6h6"/></svg>
+    </button>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;padding:16px;padding-bottom:16px;display:flex;flex-direction:column;gap:12px;">
+
+    <sc-if value="{{isQueue}}" hint-placeholder-val="{{true}}">
+      <div style="color:var(--text-muted);font-size:.85rem;line-height:1.45;margin:0 0 2px;">
+        Cattura differita — foto in coda su questo dispositivo, anche offline. Completa supermercato e prezzo quando vuoi.
+      </div>
+
+      <sc-if value="{{queueEmpty}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:56px 20px;color:var(--text-faint);text-align:center;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          <div style="font-size:.88rem;color:var(--text-muted);">Nessuna foto in coda</div>
+          <div style="font-size:.78rem;">Scatta la prima con il bottone qui sotto.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{queueNotEmpty}}" hint-placeholder-val="{{true}}">
+        <sc-for list="{{queueItems}}" as="item" hint-placeholder-count="2">
+          <div class="queue-card" onClick="{{item.onOpen}}" style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface-2);border:1px solid var(--border-soft);border-radius:var(--radius-sm);cursor:pointer;">
+            <div style="width:56px;height:56px;border-radius:var(--radius-sm);flex-shrink:0;overflow:hidden;border:1px solid var(--border-soft);background:{{item.thumb}};">
+              <svg viewBox="0 0 56 56" width="100%" height="100%" style="opacity:.55">
+                <rect x="8" y="10" width="40" height="4" rx="2" fill="#000"/>
+                <rect x="8" y="18" width="26" height="4" rx="2" fill="#000"/>
+                <rect x="8" y="38" width="2" height="10" fill="#000"/>
+                <rect x="12" y="38" width="2" height="10" fill="#000"/>
+                <rect x="16" y="38" width="3" height="10" fill="#000"/>
+                <rect x="21" y="38" width="2" height="10" fill="#000"/>
+                <rect x="25" y="38" width="4" height="10" fill="#000"/>
+                <rect x="31" y="38" width="2" height="10" fill="#000"/>
+              </svg>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+              <div style="font-size:.88rem;color:var(--text);font-weight:600;">{{item.addedLabel}}</div>
+              <div style="font-size:.78rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{item.summary}}</div>
+            </div>
+            <sc-if value="{{item.analyzedOk}}" hint-placeholder-val="{{false}}">
+              <div style="font-size:.68rem;padding:3px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap;flex-shrink:0;">{{item.analyzedOk}}</div>
+            </sc-if>
+            <sc-if value="{{item.analyzedWarn}}" hint-placeholder-val="{{false}}">
+              <div style="font-size:.68rem;padding:3px 7px;border-radius:999px;background:rgba(248,113,113,.12);color:var(--danger);white-space:nowrap;flex-shrink:0;">{{item.analyzedWarn}}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{isComplete}}" hint-placeholder-val="{{false}}">
+      <div style="width:100%;aspect-ratio:16/10;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border-soft);background:{{activeThumb}};">
+        <svg viewBox="0 0 200 125" width="100%" height="100%" style="opacity:.55">
+          <rect x="20" y="20" width="140" height="10" rx="4" fill="#000"/>
+          <rect x="20" y="38" width="95" height="10" rx="4" fill="#000"/>
+          <rect x="20" y="80" width="8" height="26" fill="#000"/>
+          <rect x="32" y="80" width="8" height="26" fill="#000"/>
+          <rect x="44" y="80" width="12" height="26" fill="#000"/>
+          <rect x="60" y="80" width="8" height="26" fill="#000"/>
+          <rect x="72" y="80" width="14" height="26" fill="#000"/>
+          <rect x="90" y="80" width="8" height="26" fill="#000"/>
+        </svg>
+      </div>
+      <div style="font-size:.78rem;color:var(--text-muted);">{{active.addedLabel}}</div>
+
+      <div>
+        <label style="display:block;font-size:.78rem;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.03em;">Supermercato</label>
+        <select value="{{activeSupermercato}}" onChange="{{onSupermercatoChange}}" style="width:100%;padding:.6rem .7rem;font-size:.95rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);">
+          <option value="">Seleziona…</option>
+          <sc-for list="{{supermarkets}}" as="sm" hint-placeholder-count="8">
+            <option value="{{sm}}">{{sm}}</option>
+          </sc-for>
+        </select>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:.78rem;color:var(--text-muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.03em;">Prezzo confezione (€)</label>
+        <input type="text" value="{{activePrezzo}}" onChange="{{onPrezzoChange}}" placeholder="Es. 2,99" style="width:100%;padding:.6rem .7rem;font-size:.95rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);"/>
+      </div>
+
+      <sc-if value="{{showAnalizzaButton}}" hint-placeholder-val="{{true}}">
+        <button class="btn-secondary" onClick="{{onAnalizza}}" style="width:100%;height:44px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);cursor:pointer;font-size:.88rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.2"/><path d="M9 2l1.3 1.3M13.7 3.3L15 2"/></svg>
+          Analizza foto
+        </button>
+        <div style="font-size:.76rem;color:var(--text-faint);margin-top:-4px;">Opzionale — propone i dati letti, li confermi tu.</div>
+      </sc-if>
+      <sc-if value="{{showOfflineHint}}" hint-placeholder-val="{{false}}">
+        <div style="font-size:.76rem;color:var(--text-faint);">Analisi non disponibile offline — completa i campi a mano.</div>
+      </sc-if>
+      <sc-if value="{{showRivediAnalisi}}" hint-placeholder-val="{{false}}">
+        <button class="btn-secondary" onClick="{{onRivediAnalisi}}" style="width:100%;height:44px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);cursor:pointer;font-size:.88rem;font-weight:600;">
+          Rivedi dati letti dalla foto
+        </button>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{isAnalyzing}}" hint-placeholder-val="{{false}}">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;min-height:420px;">
+        <div class="spinner" style="width:38px;height:38px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);"></div>
+        <div style="font-size:.9rem;color:var(--text);font-weight:600;">Analisi in corso…</div>
+        <div style="font-size:.78rem;color:var(--text-muted);max-width:220px;">Lettura di nome, prezzo e peso dalla foto del cartellino.</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isResult}}" hint-placeholder-val="{{false}}">
+      <div style="color:var(--text-muted);font-size:.85rem;line-height:1.45;margin:0 0 2px;">
+        Un campo alla volta — confermi quello che è stato letto, colmi solo quello che manca.
+      </div>
+      <sc-for list="{{fields}}" as="f" hint-placeholder-count="4">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--surface-2);border:1px solid var(--border-soft);border-radius:var(--radius-sm);">
+          <div style="width:20px;height:20px;flex-shrink:0;margin-top:2px;color:{{f.iconColor}};">
+            <sc-if value="{{f.ok}}" hint-placeholder-val="{{true}}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.3 2.3L16 9.5"/></svg>
+            </sc-if>
+            <sc-if value="{{f.missing}}" hint-placeholder-val="{{false}}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.6 18a1.8 1.8 0 0 0 1.6 2.7h15.6a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.7 1.7 0 0 0-3.4 0z"/></svg>
+            </sc-if>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px;">{{f.label}}</div>
+            <sc-if value="{{f.ok}}" hint-placeholder-val="{{true}}">
+              <div style="font-size:.92rem;color:var(--text);font-weight:600;">{{f.value}}</div>
+            </sc-if>
+            <sc-if value="{{f.missing}}" hint-placeholder-val="{{false}}">
+              <div style="font-size:.92rem;color:var(--danger);font-weight:600;">Non letto</div>
+            </sc-if>
+          </div>
+          <sc-if value="{{f.missing}}" hint-placeholder-val="{{false}}">
+            <button class="btn-small" onClick="{{onScattaConfezione}}" style="font-size:.74rem;padding:6px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--accent);white-space:nowrap;align-self:center;cursor:pointer;">Scatta confezione</button>
+          </sc-if>
+        </div>
+      </sc-for>
+    </sc-if>
+
+  </div>
+
+  <div style="flex-shrink:0;padding:14px 16px;background:var(--surface);border-top:1px solid var(--border-soft);">
+    <sc-if value="{{isQueue}}" hint-placeholder-val="{{true}}">
+      <button class="btn-primary" onClick="{{onScattaFoto}}" style="width:100%;height:52px;background:var(--accent);border:1px solid var(--accent);color:var(--accent-contrast);border-radius:var(--radius-sm);cursor:pointer;font-size:.95rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Scatta foto
+      </button>
+    </sc-if>
+
+    <sc-if value="{{isComplete}}" hint-placeholder-val="{{false}}">
+      <div style="display:flex;gap:10px;">
+        <button class="btn-danger-outline" onClick="{{onElimina}}" style="flex:1;height:48px;background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:var(--radius-sm);cursor:pointer;font-size:.88rem;font-weight:600;">Elimina</button>
+        <button class="btn-primary" onClick="{{onCarica}}" disabled="{{caricaDisabled}}" style="flex:1;height:48px;background:var(--accent);border:1px solid var(--accent);color:var(--accent-contrast);border-radius:var(--radius-sm);cursor:pointer;font-size:.88rem;font-weight:700;">Carica</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isResult}}" hint-placeholder-val="{{false}}">
+      <sc-if value="{{hasMissingField}}" hint-placeholder-val="{{false}}">
+        <div style="font-size:.8rem;color:var(--danger);background:rgba(248,113,113,.12);padding:8px 10px;border-radius:var(--radius-sm);margin-bottom:10px;">Manca il nome — usa "Scatta confezione" qui sopra prima di confermare.</div>
+      </sc-if>
+      <button class="btn-primary" onClick="{{onConfermaETorna}}" disabled="{{hasMissingField}}" style="width:100%;height:48px;background:var(--accent);border:1px solid var(--accent);color:var(--accent-contrast);border-radius:var(--radius-sm);cursor:pointer;font-size:.9rem;font-weight:700;">Conferma e torna</button>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div class="toast" style="position:absolute;left:50%;bottom:84px;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-size:.82rem;padding:9px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.35);white-space:nowrap;">{{toast}}</div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script data-dc-script data-props='{"online":{"editor":"boolean","default":true,"section":"Stato"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  static supermarkets = ['Aldi', 'DiPiù', 'Eurospin', 'Lidl', 'Martinelli', 'MD', 'Orvea', 'Poli'];
+
+  static seedQueue() {
+    return [
+      { id: 'salame', addedLabel: 'Scattata 12:03', thumb: '#8a5a3a', supermercato: '', prezzo: '', analysis: null, template: 'salame' },
+      { id: 'mozzarella', addedLabel: 'Scattata 12:05', thumb: '#e2d3ab', supermercato: '', prezzo: '', analysis: null, template: 'mozzarella' },
+    ];
+  }
+
+  static analysisFor(template) {
+    if (template === 'salame') {
+      return { nome: null, prezzo: '14,28 €', prezzoKg: '11,50 €/kg', peso: '1,242 kg', barcode: '2663950014282' };
+    }
+    if (template === 'mozzarella') {
+      return { nome: 'Brimi Mozzarella bocc. 3x125g', prezzo: '2,99 €', prezzoKg: '7,97 €/kg', peso: null, barcode: '8002063020140' };
+    }
+    return { nome: 'Wudy Burger prosc. cotto 90G', prezzo: '1,80 €', prezzoKg: '20,00 €/kg', peso: null, barcode: '8008110001995' };
+  }
+
+  state = {
+    screen: 'queue',
+    activeId: null,
+    toast: null,
+    queue: Component.seedQueue(),
+  };
+
+  showToast = (text) => {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this.setState({ toast: text });
+    this._toastTimer = setTimeout(() => this.setState({ toast: null }), 1800);
+  };
+
+  onScattaFoto = () => {
+    const item = {
+      id: 'nuova-' + Date.now(),
+      addedLabel: 'Scattata ora',
+      thumb: '#c97b4a',
+      supermercato: '',
+      prezzo: '',
+      analysis: null,
+      template: 'wudy',
+    };
+    this.setState((s) => ({ queue: [...s.queue, item] }));
+    this.showToast('Foto aggiunta alla coda');
+  };
+
+  onOpenItem = (id) => this.setState({ screen: 'complete', activeId: id });
+
+  onBackToQueue = () => this.setState({ screen: 'queue', activeId: null });
+
+  onSupermercatoChange = (e) => {
+    const val = e.target.value;
+    this.setState((s) => ({ queue: s.queue.map((it) => (it.id === s.activeId ? { ...it, supermercato: val } : it)) }));
+  };
+
+  onPrezzoChange = (e) => {
+    const val = e.target.value;
+    this.setState((s) => ({ queue: s.queue.map((it) => (it.id === s.activeId ? { ...it, prezzo: val } : it)) }));
+  };
+
+  onAnalizza = () => {
+    this.setState({ screen: 'analyzing' });
+    setTimeout(() => {
+      this.setState((s) => ({
+        screen: 'result',
+        queue: s.queue.map((it) => (it.id === s.activeId ? { ...it, analysis: Component.analysisFor(it.template) } : it)),
+      }));
+    }, 900);
+  };
+
+  onScattaConfezione = () => {
+    this.setState((s) => ({
+      queue: s.queue.map((it) =>
+        it.id === s.activeId && it.analysis ? { ...it, analysis: { ...it.analysis, nome: 'Salame (dedotto dalla confezione)' } } : it
+      ),
+    }));
+    this.showToast('Nome letto dalla confezione');
+  };
+
+  onRivediAnalisi = () => this.setState({ screen: 'result' });
+
+  onConfermaETorna = () => {
+    this.setState((s) => {
+      const item = s.queue.find((it) => it.id === s.activeId);
+      const prezzo = (item && item.analysis && item.analysis.prezzo) || (item ? item.prezzo : '');
+      return {
+        screen: 'complete',
+        queue: s.queue.map((it) => (it.id === s.activeId ? { ...it, prezzo } : it)),
+      };
+    });
+  };
+
+  onCarica = () => {
+    this.setState((s) => ({ screen: 'queue', activeId: null, queue: s.queue.filter((it) => it.id !== s.activeId) }));
+    this.showToast('Rilevazione caricata ✓');
+  };
+
+  onElimina = () => {
+    this.setState((s) => ({ screen: 'queue', activeId: null, queue: s.queue.filter((it) => it.id !== s.activeId) }));
+  };
+
+  onReset = () => this.setState({ screen: 'queue', activeId: null, toast: null, queue: Component.seedQueue() });
+
+  renderVals() {
+    const online = this.props.online ?? true;
+    const { screen, queue, activeId, toast } = this.state;
+    const active = queue.find((it) => it.id === activeId) || null;
+
+    const fields = [];
+    if (active && active.analysis) {
+      const a = active.analysis;
+      const push = (label, value) => fields.push({ label, value, ok: !!value, missing: !value, iconColor: value ? 'var(--accent)' : 'var(--danger)' });
+      push('Nome prodotto', a.nome);
+      push('Prezzo confezione', a.prezzo);
+      push('Prezzo al kg', a.prezzoKg);
+      if (a.peso) push('Peso', a.peso);
+      push('Barcode', a.barcode);
+    }
+    const hasMissingField = fields.some((f) => f.missing);
+
+    return {
+      screen,
+      isQueue: screen === 'queue',
+      isComplete: screen === 'complete',
+      isAnalyzing: screen === 'analyzing',
+      isResult: screen === 'result',
+      online,
+      offline: !online,
+      hasBack: screen !== 'queue',
+      headerTitle: screen === 'complete' ? 'Completa dati' : screen === 'analyzing' ? 'Analisi' : screen === 'result' ? 'Dati letti dalla foto' : 'Cartellini da caricare',
+      queueEmpty: queue.length === 0,
+      queueNotEmpty: queue.length > 0,
+      supermarkets: Component.supermarkets,
+      queueItems: queue.map((it) => ({
+        id: it.id,
+        thumb: it.thumb,
+        addedLabel: it.addedLabel,
+        summary: it.supermercato && it.prezzo ? it.supermercato + ' — €' + it.prezzo : 'Supermercato e prezzo da completare',
+        analyzedOk: it.analysis && it.analysis.nome ? 'Analizzata' : null,
+        analyzedWarn: it.analysis && !it.analysis.nome ? 'Manca il nome' : null,
+        onOpen: () => this.onOpenItem(it.id),
+      })),
+      active,
+      activeThumb: active ? active.thumb : '#333',
+      activeSupermercato: active ? active.supermercato : '',
+      activePrezzo: active ? active.prezzo : '',
+      caricaDisabled: !(active && active.supermercato && active.prezzo),
+      showAnalizzaButton: !!(active && !active.analysis && online),
+      showOfflineHint: !!(active && !active.analysis && !online),
+      showRivediAnalisi: !!(active && active.analysis),
+      fields,
+      hasMissingField,
+      toast,
+      hasToast: !!toast,
+      onScattaFoto: this.onScattaFoto,
+      onBack: this.onBackToQueue,
+      onSupermercatoChange: this.onSupermercatoChange,
+      onPrezzoChange: this.onPrezzoChange,
+      onAnalizza: this.onAnalizza,
+      onCarica: this.onCarica,
+      onElimina: this.onElimina,
+      onScattaConfezione: this.onScattaConfezione,
+      onConfermaETorna: this.onConfermaETorna,
+      onRivediAnalisi: this.onRivediAnalisi,
+      onReset: this.onReset,
+    };
+  }
+}
+</script>
+</body>
+</html>

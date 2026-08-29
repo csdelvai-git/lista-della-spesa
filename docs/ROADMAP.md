@@ -47,8 +47,15 @@ LIBERO/PREFERITO/OBBLIGATORIO; - stati DA_ACQUISTARE/NEL_CARRELLO/
 ACQUISTATO/CANCELLATO con transizione libera; - interfaccia in `app/`
 verificata end-to-end.
 
-Da completare: - gestione multi-lista (creazione, rinomina, più liste
-attive — rimandata, vedi DECISIONS.md); - eventuali affinamenti UX.
+Da completare: - eventuali affinamenti UX.
+
+Gestione multi-lista (creazione, rinomina, più liste attive): non più
+in programma nella forma originaria. D-032 introduce un meccanismo
+alternativo — canale mobile con due gruppi (NEL_CARRELLO/ACQUISTATO)
+più un pool di pianificazione (DA_ACQUISTARE) riattivabile via "+",
+con pulizia bulk che riporta le voci pronte per il giro successivo
+invece di richiedere una lista nuova — verificato solo su mockup
+statico (`docs/vision/mobile-mockup.html`), non ancora implementato.
 
 ## Fase 2.5 --- Test UX reale e affinamenti catalogo/lista
 
@@ -164,25 +171,33 @@ Test empirico (29/08/2026, prima della UI): analisi di 16 foto reali
 di spesa, vedi `docs/vision/test-acquisizione-foto.md`. Risultato
 rilevante per lo scope sotto — D-030.
 
-Da completare (3.2, scope ridefinito da D-030 dopo il test): - UI di
-scatto/upload foto cartellino in `app/index.html`, che copre due
-modalità d'uso, non un'unica sequenza obbligata: - **cattura
-differita**: N foto scattate al supermercato, accodate sul
-dispositivo, upload/completamento dati in un secondo momento (anche
-da un'altra sessione/posizione); - **analisi in loop, opzionale**: se
-c'è connessione e l'utente lo richiede, dopo l'upload di una foto il
-sistema propone i dati letti (nome/prezzo/prezzo unitario) **per
-campo**, non come giudizio unico sulla foto intera: ogni campo letto
-va confermato, quello mancante va richiesto in modo mirato — con lo
-scatto più adatto a colmarlo, non necessariamente un retake dello
-stesso tipo di foto (es. la confezione del prodotto invece del
-cartellino, se è lì che si trova il nome mancante); nessuna foto
-dedicata al barcode, il cui valore, quando presente, si legge già dal
-testo della foto del cartellino (modello di foto completo in D-030).
-Coerente con D-006 (Acquisizione→Proposta→Revisione→Conferma) —
-questo passo anticipa volutamente una fetta della Fase 4 (estrazione
-dati), con consenso esplicito, non come sviluppo autonomo di
-funzionalità future.
+Completato (3.2 — UI "cattura differita", D-030 modalità 1): sezione
+"Cartellini da caricare" in `app/index.html`, separata dalla
+navigazione a colonne (flusso foto-first/bottom-up, non top-down come
+l'inserimento manuale di 3.1) — scatto/selezione multipla foto
+(`<input capture>`) accodata subito in locale (IndexedDB,
+`app/js/photoQueue.js` — D-031), nessuna rete richiesta per accodare;
+ogni foto in coda mostra miniatura + supermercato (obbligatorio) +
+prezzo confezione (obbligatorio) + **Carica** (crea la rilevazione,
+carica il file su Storage e registra la riga `images` kind
+CARTELLINO — `app/js/images.js` — poi rimuove la foto dalla coda) o
+**Elimina** (scarta senza caricare). Nessuna classificazione
+articolo/formato in questo passo — la rilevazione resta non
+identificata (D-005), coerente con l'annotazione "bottom-up, formato
+separato" già presente prima in `app.js`. Verificato end-to-end via
+UI reale (foto → coda → completamento dati → upload → rilevazione +
+immagine registrate, rimossa dalla coda).
+
+Da completare (3.2, D-030 modalità 2): **analisi in loop, opzionale**
+— quando si sceglierà il servizio OCR/AI (decisione non ancora presa:
+quale servizio, chiave/costo), si aggiunge un'azione "Analizza" sulla
+stessa form di completamento per-foto già costruita, che pre-riempie
+gli stessi campi (supermercato/prezzo, ed eventuali altri) per
+conferma — non una rilavorazione della coda/upload. Coerente con
+D-006 (Acquisizione→Proposta→Revisione→Conferma); questo passo
+anticipa volutamente una fetta della Fase 4 (estrazione dati), con
+consenso esplicito, non come sviluppo autonomo di funzionalità
+future.
 
 Rimandato: - il resto della Fase 4 (suggerimenti, gestione
 incertezza su più campioni); - la modalità "barcode + scontrino"

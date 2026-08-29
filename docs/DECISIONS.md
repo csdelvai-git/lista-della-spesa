@@ -365,3 +365,118 @@ una foto tagliata o storta. La cattura userà l'input nativo del
 telefono (`<input capture>`, più semplice, nessuna dipendenza in
 più); l'affidabilità dell'inquadratura è verificata a posteriori
 dall'analisi in loop (punto 2 sopra), non prevenuta a priori.
+
+### D-031 --- Coda foto locale in IndexedDB (cattura differita, 3.2)
+
+La modalità "cattura differita" di D-030 richiede che le foto restino
+disponibili sul dispositivo tra lo scatto e il completamento dei
+dati, anche chiudendo la scheda o senza connessione. `localStorage`
+non è adatto: pensato per stringhe, con un limite totale (~5-10 MB)
+facilmente superato da poche foto. Si usa **IndexedDB** — API nativa
+del browser, nessuna dipendenza in più (CLAUDE.md: "dipendenze
+minime").
+
+Implementazione: un unico object store `pending_photos`
+(`app/js/photoQueue.js`) con id generato lato client
+(`crypto.randomUUID()`), blob immagine, mime type, dimensione, data
+di scatto. La coda è locale al browser che ha scattato la foto —
+nessuna sincronizzazione tra dispositivi, coerente con D-010 (nessuna
+gestione utenti).
+
+### D-032 --- Modello mobile: canale primario, stati per fase, "+" come lifecycle meta-articolo
+
+Il canale mobile diventa quello primario per l'uso quotidiano (fare la
+spesa, aggiungere/eliminare meta-articoli al volo, acquisire un
+prezzo); il desktop resta strumento di preparazione/back-office
+(coerente con D-029: densità Media pensata per "preparare la lista da
+PC"). Non sostituisce il desktop, ne restringe il ruolo.
+
+Verificato con un mockup statico (`docs/vision/mobile-mockup.html`,
+non wireframe di produzione — riusa/adatta l'HTML di
+`scontrino-mockup.html`, riconciliato con il modello a 3 livelli
+meta-articolo/articolo/formato invece che il 2 livelli
+prodotto/meta-prodotto del materiale di visione originale, vedi
+`docs/vision/README.md`).
+
+#### Stati per fase, stesso significato ovunque
+
+I 4 stati di `shopping_list_items` (STATI in `app/lista.js`) restano
+quelli già esistenti; questa decisione ne fissa l'interpretazione per
+canale, non ne aggiunge di nuovi: - **DA_ACQUISTARE** = pianificazione
+— stato di riposo. Ogni voce ci nasce sempre, sia creata da desktop
+sia da "+" mobile. È lo stato che il desktop mostra come principale
+oggi (coerente con l'esistente, nessun cambiamento lì); - **NEL_CARRELLO**
+= attivato per la spesa in corso — si arriva qui *solo* selezionando
+esplicitamente una voce dal pool DA_ACQUISTARE (mai creazione diretta:
+anche una voce del tutto nuova nasce DA_ACQUISTARE e va selezionata
+per attivarsi — un solo meccanismo, niente casi speciali); -
+**ACQUISTATO** = spuntato durante la spesa. Un tap solo
+(NEL_CARRELLO→ACQUISTATO), non due passaggi: NEL_CARRELLO come "messo
+nel carrello ma non pagato" è stato scartato, troppa interazione per
+un gesto che deve essere rapido (coerente con la nota UX già in
+ROADMAP.md su Fase 6); - **CANCELLATO** = dismissione vera, invariato.
+
+Vista Lista mobile: due gruppi, NEL_CARRELLO sopra (attivo,
+raggruppato per supermercato o appiattito su uno solo — funzione
+mantenuta dal mockup originale) e ACQUISTATO sotto (resta visibile,
+de-checkabile, torna NEL_CARRELLO con lo stesso tap). DA_ACQUISTARE
+non compare mai direttamente in questa vista: è il pool dietro il
+"+".
+
+Due azioni di pulizia bulk, entrambe riportano a DA_ACQUISTARE (mai a
+CANCELLATO — sono voci ricorrenti da riusare, non da scartare): -
+**Pulisci acquistati**: solo le voci ACQUISTATO; - **Pulisci tutta la
+lista**: ACQUISTATO + NEL_CARRELLO. In entrambi i casi le voci restano
+nel database, pronte per essere riselezionate dal pool — coerente con
+D-008/D-022 (nessuna cancellazione reale su un'operazione di routine).
+
+#### "+" sostituisce il bisogno del tab "Prodotti"
+
+Il tab "Prodotti" del mockup originale (catalogo meta-prodotti
+ricercabile) è **eliminato**: doppione del Catalogo desktop a colonne,
+già esistente. Il "+" mobile assorbe la parte di quel tab che serve
+davvero sul campo: apre il pool DA_ACQUISTARE (cerca/sfoglia, crea un
+meta-articolo se non esiste) e, con uno swipe, espone l'eliminazione
+di un meta-articolo dal catalogo — non solo dalla lista corrente.
+Stessa regola di sempre (D-022: cancellazione reale, bloccata se il
+meta-articolo è ancora referenziato da una voce **attiva**
+[NEL_CARRELLO o ACQUISTATO] — una voce dormiente in DA_ACQUISTARE non
+blocca l'eliminazione, altrimenti nessun elemento del pool sarebbe mai
+eliminabile); cambia solo il canale da cui la si richiama. Risolve la
+scomodità di dover passare dal desktop per compiti minimi di
+catalogo.
+
+Restano nel mockup, invariati nello scopo: tab **Confronta** (best-buy
+per meta-articolo, già previsto per Fase 7 — nessuna implementazione
+ora, solo mantenuto in vista); tab **Scansiona** (flusso cartellino di
+D-030, raggiungibile anche dalla (i) su una voce con dati incompleti,
+non solo come tab a sé).
+
+#### Relazione con la cattura differita già implementata (D-031)
+
+Il pannello "Cartellini da caricare" in `app/index.html` (desktop,
+D-031) cattura un cartellino **non classificato**, bottom-up, mentre
+si cura il catalogo — resta così, nessuna modifica al codice già
+scritto. Il tab Scansiona mobile cattura invece un cartellino
+**agganciato a una voce di lista già scelta** (si sa già quale
+meta-articolo si sta acquisendo). Sono due punti d'ingresso diversi
+sullo stesso meccanismo (foto → Storage → rilevazione), non uno
+sostituisce l'altro.
+
+Il mockup mobile (`mobile-mockup.html`) porta *anche* la modalità 1
+su mobile, come **quarto tab "Cartellini"** (occupa lo slot lasciato
+libero da "Prodotti", eliminato sopra) — stesso meccanismo del
+pannello desktop (coda locale, completamento supermercato/prezzo
+quando si vuole, upload verso una rilevazione non classificata),
+riproposto nello stile del resto dell'app mobile invece che in quello
+scuro del prototipo Design Canvas (`mockup-cartellini-mobile.html`,
+che resta come riferimento/prova di concetto separata, non sostituita).
+Così il mobile copre entrambe le modalità di D-030, coerente col
+canale primario deciso sopra.
+
+#### Fuori scope, non deciso ora
+
+La modalità "barcode + scontrino incrociati" (D-030) resta rimandata,
+invariata. La UI reale (mobile, funzionante, collegata a Supabase) non
+è ancora costruita: questa decisione fissa solo il modello dietro al
+mockup statico, da implementare come incremento successivo.

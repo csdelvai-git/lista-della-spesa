@@ -16,6 +16,8 @@ import { loadRelations } from './js/relations.js';
 import { createColumnBrowser } from './js/columnBrowser.js';
 import { fetchSupermarkets, createSupermarket } from './js/supermarkets.js';
 import { fetchPriceObservations, createPriceObservation } from './js/priceObservations.js';
+import { addPendingPhoto, listPendingPhotos, removePendingPhoto } from './js/photoQueue.js';
+import { uploadCartellinoImage } from './js/images.js';
 
 const metaArticleForm = document.getElementById('form-nuovo-meta-articolo');
 const metaArticleNameInput = document.getElementById('input-nome-meta-articolo');
@@ -41,6 +43,9 @@ const supermarketNameInput = document.getElementById('input-nome-supermercato');
 const supermarketsList = document.getElementById('supermarkets-list');
 const rilevazioniList = document.getElementById('rilevazioni-list');
 
+const inputNuovaFotoCartellino = document.getElementById('input-nuova-foto-cartellino');
+const codaFotoList = document.getElementById('coda-foto-list');
+
 const stato = document.getElementById('stato');
 
 const browser = createColumnBrowser({
@@ -60,8 +65,9 @@ function creaBottoneAzione(testo, onClick) {
 }
 
 // Rilevazioni prezzo — incremento di test (Fase 3.1): inserimento
-// manuale top-down, mentre curi il catalogo. Niente foto/Storage/OCR
-// qui (quello sarà un flusso bottom-up separato, formato-first).
+// manuale top-down, mentre curi il catalogo. Il flusso con foto
+// (Fase 3.2, sezione "Cartellini da caricare" più sotto) è bottom-up
+// e separato: nessuna classificazione articolo/formato lì.
 
 async function refreshSupermarkets() {
   const items = await fetchSupermarkets();
@@ -76,7 +82,11 @@ async function refreshSupermarkets() {
 
 function renderRilevazione(obs) {
   const li = document.createElement('li');
-  let testo = obs.articles?.name ?? '(articolo non disponibile)';
+  // article_id/format_id sono opzionali (D-005): una rilevazione da
+  // foto (Fase 3.2, D-030) resta tipicamente non classificata finché
+  // l'utente non la specializza altrove — non un dato mancante per
+  // errore.
+  let testo = obs.articles?.name ?? '(non classificato)';
   if (obs.formats) testo += ` → ${obs.formats.name}`;
   testo += ` — €${obs.package_price} — ${obs.status}`;
   li.textContent = testo;
@@ -118,6 +128,127 @@ async function refreshRilevazioni() {
     rilevazioniList.appendChild(details);
   }
 }
+
+// Cartellini da caricare — cattura differita (Fase 3.2, D-030): coda
+// locale (IndexedDB, vedi js/photoQueue.js) tra lo scatto e il
+// completamento dati; nessuna classificazione articolo/formato qui
+// (resta non identificata, D-005). L'analisi in loop (D-030, seconda
+// modalità) non è in questo incremento — verrà aggiunta come azione
+// opzionale in più su questa stessa form, non come rilavorazione.
+
+let codaFotoObjectUrls = [];
+
+function renderCodaFotoItem(item, supermarkets) {
+  const card = document.createElement('div');
+  card.className = 'coda-foto-item';
+
+  const img = document.createElement('img');
+  img.className = 'coda-foto-anteprima';
+  img.alt = 'Foto cartellino in coda';
+  img.src = URL.createObjectURL(item.blob);
+  codaFotoObjectUrls.push(img.src);
+
+  const meta = document.createElement('span');
+  meta.className = 'subtitle';
+  meta.textContent = `Scattata: ${new Date(item.capturedAt).toLocaleString('it-IT')}`;
+
+  const selectSupermercato = document.createElement('select');
+  selectSupermercato.innerHTML = '<option value="" disabled selected>Supermercato</option>';
+  for (const sm of supermarkets) {
+    const option = document.createElement('option');
+    option.value = sm.id;
+    option.textContent = sm.name;
+    selectSupermercato.appendChild(option);
+  }
+
+  const inputPrezzo = document.createElement('input');
+  inputPrezzo.type = 'number';
+  inputPrezzo.step = '0.01';
+  inputPrezzo.min = '0';
+  inputPrezzo.placeholder = 'Prezzo confezione (€)';
+
+  const btnCarica = creaBottoneAzione('Carica', async () => {
+    const supermarketId = selectSupermercato.value;
+    const price = inputPrezzo.value;
+    if (!supermarketId || !price) {
+      alert('Seleziona un supermercato e inserisci un prezzo.');
+      return;
+    }
+
+    btnCarica.disabled = true;
+    const priceObservationId = await createPriceObservation({
+      supermarketId,
+      articleId: null,
+      formatId: null,
+      packagePrice: Number(price),
+    });
+    if (!priceObservationId) {
+      btnCarica.disabled = false;
+      return;
+    }
+
+    const uploaded = await uploadCartellinoImage({
+      blob: item.blob,
+      mimeType: item.mimeType,
+      priceObservationId,
+    });
+    if (!uploaded) {
+      btnCarica.disabled = false;
+      return;
+    }
+
+    await removePendingPhoto(item.id);
+    await renderCodaFoto();
+    await refreshRilevazioni();
+    await browser.refreshPrices();
+  });
+
+  const btnElimina = creaBottoneAzione('Elimina', async () => {
+    if (!confirm('Scartare questa foto senza caricarla?')) return;
+    await removePendingPhoto(item.id);
+    await renderCodaFoto();
+  });
+
+  const form = document.createElement('div');
+  form.className = 'coda-foto-form';
+  form.append(selectSupermercato, inputPrezzo, btnCarica, btnElimina);
+
+  const corpo = document.createElement('div');
+  corpo.className = 'coda-foto-corpo';
+  corpo.append(meta, form);
+
+  card.append(img, corpo);
+  return card;
+}
+
+async function renderCodaFoto() {
+  for (const url of codaFotoObjectUrls) URL.revokeObjectURL(url);
+  codaFotoObjectUrls = [];
+
+  const items = await listPendingPhotos();
+  codaFotoList.innerHTML = '';
+
+  if (items.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'colonna-vuota';
+    empty.textContent = 'Nessuna foto in coda.';
+    codaFotoList.appendChild(empty);
+    return;
+  }
+
+  const supermarkets = await fetchSupermarkets();
+  for (const item of items) {
+    codaFotoList.appendChild(renderCodaFotoItem(item, supermarkets));
+  }
+}
+
+inputNuovaFotoCartellino.addEventListener('change', async (event) => {
+  for (const file of event.target.files) {
+    await addPendingPhoto(file);
+  }
+  event.target.value = '';
+  await renderCodaFoto();
+});
 
 supermarketForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -346,6 +477,7 @@ async function refreshAll() {
   await loadRelations(relationsContainer);
   await refreshSupermarkets();
   await refreshRilevazioni();
+  await renderCodaFoto();
   stato.textContent = 'Connesso a Supabase.';
 }
 

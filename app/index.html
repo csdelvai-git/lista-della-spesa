@@ -84,6 +84,30 @@
   </section>
 
   <details class="pannello" open>
+    <summary>Cartellini da caricare</summary>
+    <p class="subtitle">
+      Cattura differita (Fase 3.2, D-030) — scatta foto dei cartellini
+      al supermercato, anche senza connessione: restano in coda su
+      questo dispositivo. Completa supermercato e prezzo quando vuoi,
+      anche in un secondo momento, poi carica. Nessuna classificazione
+      articolo/formato qui: la rilevazione resta non identificata
+      finché non la specializzi altrove (D-005).
+    </p>
+    <label class="pulsante-foto">
+      <input
+        type="file"
+        id="input-nuova-foto-cartellino"
+        accept="image/*"
+        capture="environment"
+        multiple
+        hidden
+      >
+      Scatta/aggiungi foto
+    </label>
+    <div id="coda-foto-list" class="coda-foto-list"></div>
+  </details>
+
+  <details class="pannello" open>
     <summary>Supermercati</summary>
     <form id="form-nuovo-supermercato">
       <input
@@ -100,10 +124,11 @@
   <details class="pannello">
     <summary>Rilevazioni registrate</summary>
     <p class="subtitle">
-      Incremento di test (Fase 3.1) — inserimento manuale di un prezzo
-      indicativo mentre curi il catalogo (top-down); niente foto,
-      Storage, OCR o revisione qui. Per registrarne una, seleziona un
-      formato qui sopra.
+      Rilevazioni da entrambi i flussi: inserimento manuale top-down
+      (seleziona un formato qui sopra) e cattura foto bottom-up
+      (sezione "Cartellini da caricare" più sopra, senza
+      classificazione articolo/formato). Niente OCR o revisione qui
+      ancora (Fase 3.2, D-030, modalità 2).
     </p>
     <div id="rilevazioni-list"></div>
   </details>
