@@ -7,6 +7,7 @@ import {
 import { findOrCreateMetaArticle } from './js/metaArticles.js';
 import { fetchArticlesForMetaArticle } from './js/articles.js';
 import { fetchFormatsForArticle } from './js/formats.js';
+import { fetchSupermarkets } from './js/supermarkets.js';
 import { createColumnBrowser } from './js/columnBrowser.js';
 
 // Stesso ciclo di vita del canale mobile (D-032/D-035): NEL_CARRELLO/
@@ -168,6 +169,21 @@ function creaBottoneSpecializza(item) {
   return null;
 }
 
+// Preferenza di supermercato (D-028): azione indipendente, non più
+// legata al momento della creazione (colonna Prezzi del browser a
+// colonne) — prima era l'unico punto in cui impostarla, e mai più
+// modificabile dopo. Disponibile su ogni voce attiva, entrambi i
+// canali.
+function creaBottoneSupermercato(item) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = item.supermarkets?.name ? `@ ${item.supermarkets.name}` : 'Preferisci supermercato';
+  btn.dataset.action = 'espandi-supermercato';
+  btn.dataset.itemId = item.id;
+  btn.dataset.current = item.preferred_supermarket_id ?? '';
+  return btn;
+}
+
 // Un solo controllo per il ciclo di vita "vivo": un click scambia
 // NEL_CARRELLO<->ACQUISTATO in entrambe le direzioni, da qui come da
 // mobile (D-032) — niente più select libera con 4 stati.
@@ -237,6 +253,7 @@ function renderItemEstesa(item) {
 
   const bottoneSpecializza = creaBottoneSpecializza(item);
   if (bottoneSpecializza) div.appendChild(bottoneSpecializza);
+  div.appendChild(creaBottoneSupermercato(item));
 
   const controlli = document.createElement('div');
   controlli.className = 'voce-controlli';
@@ -261,6 +278,7 @@ function renderItemMedia(item) {
   titoloCell.appendChild(titoloTesto);
   const bottoneSpecializza = creaBottoneSpecializza(item);
   if (bottoneSpecializza) titoloCell.appendChild(bottoneSpecializza);
+  titoloCell.appendChild(creaBottoneSupermercato(item));
   div.appendChild(titoloCell);
 
   div.append(creaQuantitaInput(item), creaNotaInput(item), creaBottoneElimina(item));
@@ -301,6 +319,7 @@ function renderItemCompatta(item) {
   corpo.className = 'voce-compatta-corpo';
   const bottoneSpecializza = creaBottoneSpecializza(item);
   if (bottoneSpecializza) corpo.appendChild(bottoneSpecializza);
+  corpo.appendChild(creaBottoneSupermercato(item));
   corpo.append(creaQuantitaInput(item), creaNotaInput(item), creaBottoneElimina(item));
   details.appendChild(corpo);
 
@@ -511,6 +530,16 @@ function attachRowHandlers(container) {
       return;
     }
 
+    if (action === 'conferma-supermercato') {
+      // "" è una scelta valida qui (Nessuna preferenza), non un
+      // placeholder da ignorare come per articolo/formato.
+      const ok = await updateListItem(target.dataset.itemId, {
+        preferred_supermarket_id: target.value || null,
+      });
+      if (ok) await refreshAll();
+      return;
+    }
+
     const field = target.dataset.field;
     const itemId = target.dataset.itemId;
     if (!field || !itemId) return;
@@ -581,6 +610,28 @@ function attachRowHandlers(container) {
       }
       select.dataset.itemId = target.dataset.itemId;
       select.dataset.action = 'conferma-formato';
+      target.replaceWith(select);
+    }
+
+    if (action === 'espandi-supermercato') {
+      const supermarkets = await fetchSupermarkets();
+      const select = document.createElement('select');
+      // "Nessuna preferenza" è una scelta valida e selezionabile qui,
+      // non un placeholder disabilitato come per articolo/formato:
+      // serve anche per togliere una preferenza già impostata.
+      const nessuna = document.createElement('option');
+      nessuna.value = '';
+      nessuna.textContent = 'Nessuna preferenza';
+      select.appendChild(nessuna);
+      for (const sm of supermarkets) {
+        const option = document.createElement('option');
+        option.value = sm.id;
+        option.textContent = sm.name;
+        select.appendChild(option);
+      }
+      select.value = target.dataset.current || '';
+      select.dataset.itemId = target.dataset.itemId;
+      select.dataset.action = 'conferma-supermercato';
       target.replaceWith(select);
     }
   });

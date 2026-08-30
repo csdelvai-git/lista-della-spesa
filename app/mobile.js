@@ -154,6 +154,44 @@ function creaBottoneElimina(item) {
   return btn;
 }
 
+// Preferenza di supermercato (D-028): azione indipendente, non più
+// legata al momento della creazione — prima era l'unico punto in cui
+// impostarla, mai più modificabile dopo. Stesso meccanismo del
+// desktop.
+function creaBottoneSupermercato(item) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'link-btn';
+  btn.textContent = item.supermarkets?.name ? `@ ${item.supermarkets.name}` : 'Preferisci supermercato';
+  btn.addEventListener('click', async (event) => {
+    event.stopPropagation();
+    const supermarkets = await fetchSupermarkets();
+    const select = document.createElement('select');
+    select.className = 'confirm-select';
+    // "Nessuna preferenza" è una scelta valida e selezionabile qui,
+    // non un placeholder come per Specializza articolo/formato —
+    // serve anche per togliere una preferenza già impostata.
+    const nessuna = document.createElement('option');
+    nessuna.value = '';
+    nessuna.textContent = 'Nessuna preferenza';
+    select.appendChild(nessuna);
+    for (const sm of supermarkets) {
+      const opt = document.createElement('option');
+      opt.value = sm.id;
+      opt.textContent = sm.name;
+      select.appendChild(opt);
+    }
+    select.value = item.preferred_supermarket_id ?? '';
+    select.addEventListener('click', (e) => e.stopPropagation());
+    select.addEventListener('change', async () => {
+      const ok = await updateListItem(item.id, { preferred_supermarket_id: select.value || null });
+      if (ok) await refreshLista();
+    });
+    btn.replaceWith(select);
+  });
+  return btn;
+}
+
 function renderItemRow(item) {
   const row = document.createElement('div');
   row.className = 'item-row' + (item.status === 'ACQUISTATO' ? ' done' : '');
@@ -180,6 +218,7 @@ function renderItemRow(item) {
   azioni.className = 'item-azioni';
   const bottoneSpecializza = creaBottoneSpecializza(item);
   if (bottoneSpecializza) azioni.appendChild(bottoneSpecializza);
+  azioni.appendChild(creaBottoneSupermercato(item));
   azioni.appendChild(creaBottoneElimina(item));
   info.appendChild(azioni);
 

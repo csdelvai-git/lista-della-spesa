@@ -287,20 +287,33 @@ soprattutto la riscrittura desktop, ma ha toccato anche questo tab).
 
 Rimandato: tab Scansiona reale.
 
-Note per v2 (equivalenza completa desktop/mobile, non essenziali per
-v1): - il "+" mobile permette solo di scegliere un meta-articolo e
+Completato subito dopo: **"Preferisci supermercato"** — azione
+indipendente su ogni voce attiva (entrambi i canali), scollegata dal
+momento di creazione/specializzazione. Prima `preferred_supermarket_id`
+si impostava solo al momento della creazione (colonna Prezzi del
+browser a colonne) e non era più modificabile — chi sceglieva "solo
+meta-articolo, dettaglio dopo" la perdeva per sempre. Stesso pattern
+di "Specializza": bottone che si trasforma in una select al click,
+con "Nessuna preferenza" come opzione valida (non un placeholder) per
+poter anche togliere una preferenza già impostata.
+
+Note per v2 (equivalenza completa desktop/mobile, non essenziale per
+v1): il "+" mobile permette solo di scegliere un meta-articolo e
 dettagliare dopo (Specializza); il desktop invece può anche scegliere
 subito meta→articolo→formato→supermercato dalle colonne prima di
 "Aggiungi alla lista". Per la piena equivalenza servirebbe poter
 espandere un meta-articolo nel "+" *prima* di selezionarlo, non solo
-dopo; - `preferred_supermarket_id` oggi si imposta solo al momento
-della creazione (colonna Prezzi del browser a colonne, selezionando
-una rilevazione) — chi sceglie il percorso "solo meta-articolo,
-dettaglio dopo" perde per sempre quella possibilità, e non è comunque
-modificabile in un secondo momento su una voce già creata. Servirebbe
-un'azione indipendente "Preferisci supermercato" su ogni voce attiva,
-su entrambi i canali, scollegata dal momento di creazione/
-specializzazione.
+dopo.
+
+Bug scoperto e corretto durante queste prove: **eliminare un
+articolo/formato/meta-articolo poteva fallire per voci dormienti
+invisibili** che li referenziavano ancora (FK senza `ON DELETE` su
+`shopping_list_items`, diventate invisibili dopo aver tolto il
+pannello "Pianificazione"). Le tre funzioni di eliminazione ora le
+ripuliscono prima di tentare — una voce attiva blocca comunque
+correttamente (D-022). Notato anche un vero doppione di dati
+(`Ananas`, due voci identiche da prima di questi controlli): non un
+bug applicativo, solo dato vecchio da ripulire a mano.
 
 ## Fase 4 --- OCR e AI
 
