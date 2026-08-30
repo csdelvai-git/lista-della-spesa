@@ -225,6 +225,15 @@ multi-riga) non presente nel modello attuale.
 Implementazione: - estrazione dati (parzialmente anticipata in 3.2,
 vedi D-030); - suggerimenti; - gestione incertezza.
 
+Nota per la UI mobile (tab "Scansiona"/"Cartellini", non ancora
+implementata — vedi D-032): sarebbe comodo mostrare una stima del
+credito Anthropic residuo, espressa in numero di foto ancora
+analizzabili (credito diviso costo medio per immagine, vedi
+`docs/analisi_ocr_visione_cartellini.md`). Richiede una seconda Edge
+Function che legga il saldo (Admin API Anthropic, chiave separata da
+quella usata per l'analisi) — non implementata ora, idea da
+riprendere insieme alla UI mobile.
+
 ## Fase 5 --- Storico prezzi
 
 Implementazione: - storico; - confronto prezzi; - prezzo normalizzato.
