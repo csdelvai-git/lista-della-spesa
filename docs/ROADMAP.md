@@ -224,6 +224,45 @@ incertezza su più campioni); - la modalità "barcode + scontrino"
 (D-030), che introdurrebbe un'entità di dominio nuova (scontrino
 multi-riga) non presente nel modello attuale.
 
+## Fase Mobile --- Canale primario (D-032)
+
+**Stato: v1.0, 2 tab su 3 funzionanti**
+
+Nuova pagina dedicata `app/mobile.html` (+ `mobile.css`/`mobile.js`),
+separata da `index.html`/`lista.html` — stesso pattern già in uso nel
+repo per viste diverse. Navigazione a 3 tab in basso, stile ripreso da
+`docs/vision/mobile-mockup.html` (palette "carta/ricevuta", non la
+cornice finta da telefono lì usata solo per la presentazione).
+
+Completato:
+- **Tab Lista** (porting di `lista.js`, non riscrittura della logica):
+  due gruppi NEL_CARRELLO/ACQUISTATO, un tap per spuntare/despuntare,
+  chip "appiattisci su un negozio" quando ci sono preferenze di
+  supermercato diverse. Pool "+" (`DA_ACQUISTARE`): cerca/crea
+  meta-articolo, tocco per attivare, swipe per eliminare dal catalogo
+  (cancella prima la voce dormiente — altrimenti il vincolo la blocca
+  sempre, poi tenta `deleteMetaArticle`, che resta bloccato solo se
+  una voce attiva altrove referenzia ancora il meta-articolo, D-022).
+  Due pulizie bulk (acquistati / tutta la lista), sempre verso
+  DA_ACQUISTARE mai CANCELLATO.
+- **Tab Cartellini** (riuso diretto di `photoQueue.js`/`images.js`/
+  `aiCartellino.js`/le funzioni trova-o-crea di D-034): stessa
+  sostanza del pannello desktop, UI diversa — card compatta nella
+  lista, completamento in un bottom sheet a schermo pieno (foto
+  grande, campi separati) invece che tutto incollato in una riga.
+  Verificato end-to-end con una foto reale: analisi AI, classificazione,
+  upload, rilevazione salvata correttamente in Supabase.
+- **Tab Scansiona**: lasciato **mockup inerte** di proposito (nessuna
+  operazione agganciata) — serviva solo a validare lo spazio nella
+  tabbar a 3 voci. Diventa funzionante in uno sprint successivo
+  (cartellino agganciato a una voce di lista già scelta, D-032).
+
+Piccola estensione di `js/shoppingListItems.js` per questo lavoro:
+`deleteListItem(id)`, usata dallo swipe-elimina del pool prima del
+tentativo di cancellare il meta-articolo.
+
+Rimandato: tab Scansiona reale.
+
 ## Fase 4 --- OCR e AI
 
 Implementazione: - estrazione dati (parzialmente anticipata in 3.2,

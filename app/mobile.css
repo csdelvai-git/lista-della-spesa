@@ -1,0 +1,544 @@
+/* Stile mobile — Fase mobile (D-032), riprende la palette e i
+   componenti di docs/vision/mobile-mockup.html, ma qui è una pagina
+   vera (non lo schermo finto del mockup): niente cornice/notch, il
+   layout riempie il viewport reale del telefono. */
+
+:root {
+  --paper: #efede6;
+  --paper-dark: #e4e1d6;
+  --ink: #1c1b18;
+  --ink-soft: #57534a;
+  --ink-faint: #8c887c;
+  --green: #2f6844;
+  --green-bg: #dce7dd;
+  --amber: #b9791f;
+  --amber-bg: #f2e3c7;
+  --red: #a63a2e;
+  --red-bg: #f0dbd6;
+  --line: #cfcabc;
+  --font-display: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Roboto Mono', 'Courier New', monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  position: relative;
+}
+
+.topbar {
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 18px 12px;
+  flex-shrink: 0;
+}
+.topbar .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  margin: 0 0 2px;
+}
+.topbar h1 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.barcode-divider {
+  height: 12px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0px, var(--ink) 1px, transparent 1px, transparent 3px,
+    var(--ink) 3px, var(--ink) 5px, transparent 5px, transparent 6px,
+    var(--ink) 6px, var(--ink) 8px, transparent 8px, transparent 9px
+  );
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 24px;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 18px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label:first-child { margin-top: 2px; }
+.section-label::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px dashed var(--line);
+}
+
+.pane { display: none; }
+.pane.active { display: block; }
+
+/* --- Lista: gruppi per supermercato, righe voce --- */
+
+.chip-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  margin-bottom: 14px;
+}
+.chip {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  padding: 6px 12px;
+  border: 1px solid var(--ink);
+  border-radius: 20px;
+  color: var(--ink);
+  background: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip.active { background: var(--ink); color: var(--paper); }
+
+.shop-group {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.shop-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 9px 12px;
+  background: var(--ink);
+  color: var(--paper);
+}
+.shop-head.done { background: var(--ink-faint); }
+.shop-head .name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.shop-head .count { font-family: var(--font-mono); font-size: 11px; color: #c8c4b4; }
+
+.item-row {
+  display: flex;
+  align-items: center;
+  padding: 11px 12px;
+  border-top: 1px dashed var(--line);
+  gap: 10px;
+  cursor: pointer;
+}
+.item-row:first-of-type { border-top: none; }
+.item-check {
+  width: 18px; height: 18px;
+  border: 1.5px solid var(--ink-faint);
+  border-radius: 3px;
+  flex-shrink: 0;
+  position: relative;
+}
+.item-check.checked { background: var(--green); border-color: var(--green); }
+.item-check.checked::after {
+  content: '✓';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px;
+}
+.item-name { font-size: 14px; color: var(--ink); flex: 1; }
+.item-row.done .item-name { color: var(--ink-faint); text-decoration: line-through; }
+.item-sub { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); display: block; }
+
+.empty-hint {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  text-align: center;
+  padding: 24px 12px;
+}
+
+.list-footer {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  padding: 14px 0 6px;
+  flex-wrap: wrap;
+}
+.list-footer .link-btn {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.fab {
+  position: absolute;
+  right: 18px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 78px);
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 24px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  z-index: 15;
+  border: none;
+}
+
+/* --- Pool "+" (sheet DA_ACQUISTARE) --- */
+
+.pool-sheet {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 27, 24, 0.45);
+  z-index: 25;
+  align-items: flex-end;
+  justify-content: center;
+}
+.pool-sheet.open { display: flex; }
+.pool-card {
+  background: var(--paper);
+  width: 100%;
+  max-width: 480px;
+  max-height: 86dvh;
+  border-radius: 14px 14px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
+}
+.pool-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 8px;
+  flex-shrink: 0;
+}
+.pool-head h2 { font-family: var(--font-display); font-size: 16px; text-transform: uppercase; margin: 0; color: var(--ink); }
+.pool-close {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--ink); color: var(--paper);
+  border: none; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; cursor: pointer;
+}
+.pool-body { padding: 0 16px 16px; overflow-y: auto; }
+.pool-hint { font-size: 11.5px; color: var(--ink-faint); margin: 0 0 10px; line-height: 1.4; }
+
+.search-bar {
+  display: flex; align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 9px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.search-bar input {
+  border: none; background: none; outline: none; flex: 1;
+  font-family: var(--font-mono); font-size: 13px; color: var(--ink);
+}
+.search-bar input::placeholder { color: var(--ink-faint); }
+
+.pool-row-wrap {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+  background: var(--red);
+}
+.pool-row-delete {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 84px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-align: center;
+  padding: 0 8px;
+  cursor: pointer;
+  border: none;
+}
+.pool-row {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 12px;
+  position: relative;
+  touch-action: pan-y;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.pool-row .r-name { font-size: 14px; color: var(--ink); flex: 1; }
+.pool-new { display: flex; gap: 6px; margin-top: 10px; }
+.pool-new input {
+  flex: 1; font-family: var(--font-mono); font-size: 13px;
+  border: 1px solid var(--line); border-radius: 4px; padding: 9px 10px; background: #fff;
+}
+.pool-new button {
+  font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--ink);
+  border-radius: 4px; background: var(--ink); color: var(--paper); padding: 0 14px; cursor: pointer;
+}
+
+/* --- Modal generico (usato per: completamento cartellino) --- */
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 27, 24, 0.55);
+  z-index: 30;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+.modal-overlay.open { display: flex; }
+.modal-card {
+  background: var(--paper);
+  border-radius: 14px 14px 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92dvh;
+  overflow-y: auto;
+}
+.modal-body { padding: 16px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); }
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0 0 2px;
+}
+.modal-sub {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  margin: 0 0 14px;
+}
+.modal-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: var(--paper-dark);
+  display: block;
+}
+
+.confirm-row { padding: 9px 0; border-top: 1px dashed var(--line); }
+.confirm-row:first-of-type { border-top: none; }
+.confirm-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+  display: block;
+  margin-bottom: 6px;
+}
+.confirm-input, .confirm-select {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+}
+.confirm-input::placeholder { color: var(--ink-faint); font-style: italic; }
+
+.ai-box {
+  background: var(--amber-bg);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin: 12px 0;
+}
+.ai-box b { color: var(--amber); }
+.ai-box .ai-empty { font-style: italic; color: var(--ink-soft); }
+
+.btn-primary {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 14px;
+  border-radius: 4px;
+  border: none;
+  margin-top: 8px;
+  cursor: pointer;
+}
+.btn-primary:disabled { opacity: 0.5; }
+.btn-primary.btn-green { background: var(--green); }
+.btn-secondary {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: none;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 11px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+/* --- Cartellini (cattura differita, D-030/D-031) --- */
+
+.cartellino-card {
+  display: flex;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.cartellino-thumb {
+  width: 56px; height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.cartellino-info { flex: 1; min-width: 0; }
+.cartellino-time { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); }
+.cartellino-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-top: 3px;
+}
+.cartellino-status.incompleto { color: var(--amber); }
+.cartellino-status.pronto { color: var(--green); }
+
+/* --- Scansiona: mockup non funzionante, D-032 (rimandato) --- */
+
+.mockup-note {
+  background: var(--amber-bg);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+.mockup-note b { color: var(--amber); }
+.scan-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  opacity: 0.75;
+}
+.scan-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+}
+.scan-card-icon {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--paper-dark);
+  color: var(--ink-faint);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.scan-card-title {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.scan-card-purpose {
+  font-size: 11px;
+  color: var(--ink-soft);
+  padding: 0 12px 10px 56px;
+  margin-top: -6px;
+}
+
+/* --- Barra tab in basso --- */
+
+.tabbar {
+  display: flex;
+  border-top: 1px solid var(--ink);
+  background: var(--paper);
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 0 10px;
+  cursor: pointer;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+.tab.active { color: var(--ink); }
+.tab .ic { width: 20px; height: 20px; }
+.tab .lbl {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tab.active .lbl { font-weight: bold; }
+
+.stato-connessione {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  text-align: center;
+  padding: 4px 0 0;
+}

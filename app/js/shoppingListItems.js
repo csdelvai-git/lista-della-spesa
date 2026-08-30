@@ -58,6 +58,22 @@ export async function createListItem(
   return true;
 }
 
+// Fase mobile (D-032): elimina la sola voce di lista (non il
+// meta-articolo). Serve prima di un'eliminazione dal pool
+// DA_ACQUISTARE — quella riga andrebbe comunque rimossa dal FK anche
+// se poi la delete del meta-articolo viene bloccata perché ancora
+// referenziato da una voce attiva altrove (D-022).
+export async function deleteListItem(itemId) {
+  const { error } = await supabase.from('shopping_list_items').delete().eq('id', itemId);
+
+  if (error) {
+    alert(`Errore rimozione voce: ${error.message}`);
+    console.error(error);
+    return false;
+  }
+  return true;
+}
+
 export async function updateListItem(itemId, patch) {
   const { error } = await supabase
     .from('shopping_list_items')
