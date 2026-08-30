@@ -438,10 +438,21 @@ document.getElementById('pool-new-btn').addEventListener('click', async () => {
   if (!metaId) return;
 
   const esistente = allItems.find((i) => i.meta_articles?.id === metaId && i.status !== 'CANCELLATO');
-  if (esistente) {
-    alert(esistente.status === 'DA_ACQUISTARE' ? 'Già in pianificazione.' : 'Già attiva in lista.');
+  if (esistente?.status === 'DA_ACQUISTARE') {
+    alert('Già in pianificazione: tocca la voce qui sopra per attivarla.');
     input.value = '';
     return;
+  }
+  if (esistente) {
+    // Già attivo altrove (NEL_CARRELLO/ACQUISTATO): seconda istanza
+    // deliberata (es. Banane gialle + Banane rosse) — stessa apertura
+    // di "Mostra tutti" sul desktop (D-036), senza bisogno di un
+    // checkbox in più qui: nasce comunque dormiente, da attivare con
+    // un tap come le altre.
+    if (!confirm(`"${name}" è già in lista. Creare comunque una seconda istanza?`)) {
+      input.value = '';
+      return;
+    }
   }
 
   const ok = await createListItem(currentListId, metaId);

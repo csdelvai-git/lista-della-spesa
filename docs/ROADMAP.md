@@ -287,6 +287,21 @@ soprattutto la riscrittura desktop, ma ha toccato anche questo tab).
 
 Rimandato: tab Scansiona reale.
 
+Note per v2 (equivalenza completa desktop/mobile, non essenziali per
+v1): - il "+" mobile permette solo di scegliere un meta-articolo e
+dettagliare dopo (Specializza); il desktop invece può anche scegliere
+subito meta→articolo→formato→supermercato dalle colonne prima di
+"Aggiungi alla lista". Per la piena equivalenza servirebbe poter
+espandere un meta-articolo nel "+" *prima* di selezionarlo, non solo
+dopo; - `preferred_supermarket_id` oggi si imposta solo al momento
+della creazione (colonna Prezzi del browser a colonne, selezionando
+una rilevazione) — chi sceglie il percorso "solo meta-articolo,
+dettaglio dopo" perde per sempre quella possibilità, e non è comunque
+modificabile in un secondo momento su una voce già creata. Servirebbe
+un'azione indipendente "Preferisci supermercato" su ogni voce attiva,
+su entrambi i canali, scollegata dal momento di creazione/
+specializzazione.
+
 ## Fase 4 --- OCR e AI
 
 Implementazione: - estrazione dati (parzialmente anticipata in 3.2,
