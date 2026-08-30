@@ -668,3 +668,32 @@ correttamente (D-022). Stesso principio già applicato al pool mobile
 per il meta-articolo, ora dentro le funzioni stesse invece che nei
 singoli chiamanti (`js/metaArticles.js`, `js/articles.js`,
 `js/formats.js`).
+
+### D-037 --- Il pool mobile mostra una riga per meta-articolo, non per istanza
+
+Il fix precedente (mostrare articolo/formato nelle righe del pool per
+distinguere istanze diverse) risolveva la confusione "sembra un
+doppione" ma creava un problema diverso: con più istanze dormienti
+per lo stesso meta-articolo, il pool si riempirebbe di righe quasi
+identiche — l'opposto dell'aggiunta rapida che il "+" deve essere.
+Deve restare facile dire "devo comprare le uova" e basta, senza dover
+scegliere ogni volta quali, grandi, piccole, ruspanti, e dove: la
+specializzazione va fatta *se serve*, non imposta.
+
+**Decisione**: il pool raggruppa le voci dormienti per meta-articolo —
+una riga sola per meta, non una per istanza. Il tap sulla riga
+attiva sempre la scelta più semplice: la voce generica (senza
+articolo/formato) se esiste, altrimenti una qualunque tra quelle
+disponibili — correggibile comunque dopo con "Specializza" sulla voce
+appena attivata. Solo se per quel meta-articolo esistono **più**
+istanze dormienti, sotto la riga compare "Scegli tra N varianti" — un
+elenco a comparsa, chiuso di default, con cui scegliere quella giusta
+invece di quella di default. Un solo meta-articolo con una sola
+istanza dormiente (il caso comune) resta esattamente un tap, senza
+alcuna scelta in più da vedere.
+
+Implementazione: `app/mobile.js` (`renderPoolGroup`, sostituisce
+`renderPoolRow`), `app/mobile.css` (`.pool-varianti`,
+`.pool-variante-row`). Il desktop non ha un pool equivalente da D-036
+(usa il browser a colonne, che è già "meta prima, dettaglio dopo" per
+natura) — nessuna modifica necessaria lì.

@@ -14,7 +14,6 @@ import {
   fetchListItems,
   createListItem,
   updateListItem,
-  deleteListItem,
 } from './js/shoppingListItems.js';
 import { fetchMetaArticles, findOrCreateMetaArticle, deleteMetaArticle } from './js/metaArticles.js';
 import { fetchArticles, fetchArticlesForMetaArticle, findOrCreateArticle } from './js/articles.js';
@@ -395,7 +394,30 @@ function attachSwipe(rowEl) {
   });
 }
 
-function renderPoolRow(item) {
+// Una riga per meta-articolo, non una per istanza dormiente (D-037):
+// deve restare facile dire "devo comprare le uova" e basta, senza
+// dover scegliere per forza quali — la specializzazione tra varianti
+// già dormienti (es. "Aceto" bare + "Aceto → Aceto Balsamico") resta
+// disponibile ma opzionale, a comparsa solo se ce n'è più di una.
+function attivaEChiudi(itemId) {
+  return async () => {
+    const ok = await updateListItem(itemId, { status: 'NEL_CARRELLO' });
+    if (ok) {
+      await refreshLista();
+      poolSheet.classList.remove('open');
+    }
+  };
+}
+
+function renderPoolGroup(istanze) {
+  // Tap semplice = attiva la voce bare (nessun articolo/formato) se
+  // esiste — è il caso "generico" — altrimenti la prima disponibile:
+  // corregibile comunque dopo con Specializza sulla voce attivata.
+  const principale = istanze.find((i) => !i.articles && !i.formats) ?? istanze[0];
+
+  const container = document.createElement('div');
+  container.className = 'pool-group';
+
   const wrap = document.createElement('div');
   wrap.className = 'pool-row-wrap';
 
@@ -405,13 +427,11 @@ function renderPoolRow(item) {
   del.textContent = 'Elimina dal catalogo';
   del.addEventListener('click', async (event) => {
     event.stopPropagation();
-    const nome = item.meta_articles?.name ?? '(senza nome)';
+    const nome = principale.meta_articles?.name ?? '(senza nome)';
     if (!confirm(`Eliminare "${nome}" dal catalogo? Non si può annullare.`)) return;
-    // Prima la voce dormiente (altrimenti il vincolo la blocca sempre,
-    // D-032): se resta un'altra voce attiva altrove per lo stesso
-    // meta-articolo, deleteMetaArticle la blocca comunque (D-022).
-    await deleteListItem(item.id);
-    await deleteMetaArticle(item.meta_articles.id);
+    // deleteMetaArticle ripulisce da sola tutte le voci dormienti
+    // collegate prima di tentare l'eliminazione (D-022/D-036).
+    await deleteMetaArticle(principale.meta_articles.id);
     await refreshLista();
     renderPool();
   });
@@ -419,35 +439,38 @@ function renderPoolRow(item) {
 
   const row = document.createElement('div');
   row.className = 'pool-row';
-  const info = document.createElement('div');
-  info.style.flex = '1';
-  info.style.minWidth = '0';
   const name = document.createElement('span');
   name.className = 'r-name';
-  name.textContent = item.meta_articles?.name ?? '(senza nome)';
-  info.appendChild(name);
-  // Senza questo, istanze diverse dello stesso meta-articolo (es.
-  // "Acqua Gasata" bare + "Acqua Gasata → Guizza") sembrano doppioni
-  // identici — mostra lo stesso dettaglio del desktop.
-  const dettagli = [item.articles?.name, item.formats?.name].filter(Boolean);
-  if (dettagli.length > 0) {
-    const sub = document.createElement('span');
-    sub.className = 'item-sub';
-    sub.textContent = dettagli.join(' · ');
-    info.appendChild(sub);
-  }
-  row.appendChild(info);
+  name.textContent = principale.meta_articles?.name ?? '(senza nome)';
+  row.appendChild(name);
   attachSwipe(row);
-  row.addEventListener('click', async () => {
-    const ok = await updateListItem(item.id, { status: 'NEL_CARRELLO' });
-    if (ok) {
-      await refreshLista();
-      poolSheet.classList.remove('open');
-    }
-  });
+  row.addEventListener('click', attivaEChiudi(principale.id));
   wrap.appendChild(row);
+  container.appendChild(wrap);
 
-  return wrap;
+  // Specializzazione opzionale: solo se esistono più istanze
+  // dormiente per lo stesso meta-articolo, un piccolo elenco a
+  // comparsa per scegliere quella giusta invece di quella di default.
+  // Fuori dal wrap (non nello swipe), altrimenti "overflow: hidden"
+  // lo taglierebbe quando si apre.
+  if (istanze.length > 1) {
+    const dettagli = document.createElement('details');
+    dettagli.className = 'pool-varianti';
+    const summary = document.createElement('summary');
+    summary.textContent = `Scegli tra ${istanze.length} varianti`;
+    dettagli.appendChild(summary);
+    for (const variante of istanze) {
+      const rigaVariante = document.createElement('div');
+      rigaVariante.className = 'pool-variante-row';
+      rigaVariante.textContent =
+        [variante.articles?.name, variante.formats?.name].filter(Boolean).join(' · ') || '(generico, senza articolo)';
+      rigaVariante.addEventListener('click', attivaEChiudi(variante.id));
+      dettagli.appendChild(rigaVariante);
+    }
+    container.appendChild(dettagli);
+  }
+
+  return container;
 }
 
 function renderPool() {
@@ -455,15 +478,23 @@ function renderPool() {
   const dormienti = allItems.filter(
     (i) => i.status === 'DA_ACQUISTARE' && (!query || (i.meta_articles?.name ?? '').toLowerCase().includes(query))
   );
+
+  const gruppi = new Map();
+  for (const item of dormienti) {
+    const metaId = item.meta_articles?.id;
+    if (!gruppi.has(metaId)) gruppi.set(metaId, []);
+    gruppi.get(metaId).push(item);
+  }
+
   poolRowsEl.innerHTML = '';
-  if (dormienti.length === 0) {
+  if (gruppi.size === 0) {
     const empty = document.createElement('p');
     empty.className = 'empty-hint';
     empty.textContent = 'Nessuna voce in pianificazione.';
     poolRowsEl.appendChild(empty);
     return;
   }
-  for (const item of dormienti) poolRowsEl.appendChild(renderPoolRow(item));
+  for (const istanze of gruppi.values()) poolRowsEl.appendChild(renderPoolGroup(istanze));
 }
 
 poolSearchEl.addEventListener('input', renderPool);

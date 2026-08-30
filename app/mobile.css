@@ -287,11 +287,12 @@ body {
 }
 .search-bar input::placeholder { color: var(--ink-faint); }
 
+.pool-group { margin-bottom: 6px; }
+
 .pool-row-wrap {
   position: relative;
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 6px;
   background: var(--red);
 }
 .pool-row-delete {
@@ -319,6 +320,32 @@ body {
   transition: transform 0.15s ease;
 }
 .pool-row .r-name { font-size: 14px; color: var(--ink); flex: 1; }
+
+/* Specializzazione opzionale nel pool (D-037): a comparsa, solo se
+   per il meta-articolo esiste più di un'istanza dormiente. */
+.pool-varianti {
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pool-varianti summary {
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.pool-variante-row {
+  padding: 10px 12px;
+  border-top: 1px dashed var(--line);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.pool-variante-row:active { background: var(--paper-dark); }
+
 .pool-new { display: flex; gap: 6px; margin-top: 10px; }
 .pool-new input {
   flex: 1; font-family: var(--font-mono); font-size: 13px;
