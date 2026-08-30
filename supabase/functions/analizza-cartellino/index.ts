@@ -22,7 +22,11 @@ const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
 // dell'organizzazione: non è un segreto (a differenza della chiave), va
 // bene hardcoded — cambia solo se in futuro si usa un workspace diverso.
 const ANTHROPIC_WORKSPACE_ID = 'wrkspc_01VXiSLchuVyS3Ag8GNSkCQo';
-const MODEL = 'claude-haiku-4-5-20251001';
+const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
+// Solo per confronto/test (non esposto nella UI dell'app): un `model`
+// esplicito nel body viene accettato solo se in questa lista, per non
+// lasciar passare un nome di modello arbitrario dal client.
+const MODELLI_CONSENTITI = ['claude-haiku-4-5-20251001', 'claude-sonnet-5'];
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -71,7 +75,7 @@ Deno.serve(async (req) => {
     );
   }
 
-  let body: { imageBase64?: string; mimeType?: string };
+  let body: { imageBase64?: string; mimeType?: string; model?: string };
   try {
     body = await req.json();
   } catch {
@@ -81,9 +85,15 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { imageBase64, mimeType } = body;
+  const { imageBase64, mimeType, model } = body;
   if (!imageBase64 || !mimeType) {
     return new Response(JSON.stringify({ error: 'imageBase64 e mimeType sono richiesti' }), {
+      status: 400,
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    });
+  }
+  if (model && !MODELLI_CONSENTITI.includes(model)) {
+    return new Response(JSON.stringify({ error: `Modello non consentito: ${model}` }), {
       status: 400,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
@@ -98,7 +108,7 @@ Deno.serve(async (req) => {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: model ?? DEFAULT_MODEL,
       max_tokens: 1024,
       temperature: 0,
       messages: [
