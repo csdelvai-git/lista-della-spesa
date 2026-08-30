@@ -108,9 +108,11 @@ Deno.serve(async (req) => {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
+      // Niente `temperature`: alcuni modelli più recenti (es. Sonnet 5)
+      // la rifiutano come parametro deprecato — il prompt chiede già
+      // esplicitamente un unico JSON, non serve forzare la temperatura.
       model: model ?? DEFAULT_MODEL,
       max_tokens: 1024,
-      temperature: 0,
       messages: [
         {
           role: 'user',
