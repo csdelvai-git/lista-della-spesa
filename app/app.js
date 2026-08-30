@@ -181,8 +181,11 @@ async function refreshCodaFotoSupermercati() {
 // il campo editabile, non un parser affidabile: pattern non
 // riconosciuti restano un campo vuoto da compilare a mano.
 function estraiFormatoDaTesto(testo) {
-  const match = testo.match(/\d+\s?x\s?\d+(?:[.,]\d+)?\s?(?:kg|g|l|ml|cl)\b/i)
-    ?? testo.match(/\d+(?:[.,]\d+)?\s?(?:kg|g|l|ml|cl)\b/i);
+  // "lt" prima di "l" nell'alternanza: "1LT" deve provare "lt" prima
+  // che "l" fallisca sul boundary con la "T" successiva (litri è
+  // scritto più spesso "lt" che "l" sulle etichette italiane).
+  const match = testo.match(/\d+\s?x\s?\d+(?:[.,]\d+)?\s?(?:kg|g|lt|l|ml|cl)\b/i)
+    ?? testo.match(/\d+(?:[.,]\d+)?\s?(?:kg|g|lt|l|ml|cl)\b/i);
   return match ? match[0].replace(',', '.') : '';
 }
 
