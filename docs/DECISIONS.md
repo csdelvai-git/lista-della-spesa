@@ -708,3 +708,21 @@ meta-articoli già attivi (etichettati "già nel carrello — tocca per
 una 2ª istanza"), mescolati in ordine alfabetico con quelli
 dormienti — un meta con entrambi (dormiente E attivo, es. "Birra")
 compare una sola volta, dalla sua voce dormiente, senza duplicati.
+
+**Audit di parità richiesto dall'utente**: confronto sistematico
+riga per riga tra `lista.js` e `mobile.js`, non solo caso per caso.
+Trovate e corrette due incongruenze vere: - il "Crea" del pool mobile
+non attivava subito la voce (nasceva dormiente, serviva un tap in
+più) — ora si comporta come "Aggiungi alla lista" sul desktop, un
+solo tocco fino a "Nel carrello"; - mancavano del tutto i campi
+Quantità e Nota sulle voci mobile (presenti da sempre sul desktop) —
+aggiunti, stesso aggiornamento diretto al cambio.
+
+Trovate anche tre differenze di interazione, non ancora unificate
+in attesa di conferma prodotto: raggruppamento "Nel carrello" per
+supermercato con chip "appiattisci" (solo mobile, dal mockup
+originale — il desktop usa le densità Estesa/Media/Compatta di
+D-029); ricerca testuale nel pool (solo mobile — la colonna
+Meta-articoli desktop è solo scorrevole); "Elimina dal catalogo"
+raggiungibile dalla Lista (solo mobile, che non ha un tab Catalogo
+separato — sul desktop quell'azione vive nel tab Catalogo).

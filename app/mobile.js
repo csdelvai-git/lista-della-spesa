@@ -221,6 +221,31 @@ function renderItemRow(item) {
   azioni.appendChild(creaBottoneElimina(item));
   info.appendChild(azioni);
 
+  // Quantità/nota (mancavano qui, presenti da sempre sul desktop):
+  // stesso campo diretto, aggiornamento immediato al cambio.
+  const campi = document.createElement('div');
+  campi.className = 'item-campi';
+  const inputQuantita = document.createElement('input');
+  inputQuantita.type = 'number';
+  inputQuantita.step = 'any';
+  inputQuantita.placeholder = 'Quantità';
+  inputQuantita.value = item.quantity ?? '';
+  inputQuantita.addEventListener('click', (event) => event.stopPropagation());
+  inputQuantita.addEventListener('change', async () => {
+    const value = inputQuantita.value === '' ? null : Number(inputQuantita.value);
+    await updateListItem(item.id, { quantity: value });
+  });
+  const inputNota = document.createElement('input');
+  inputNota.type = 'text';
+  inputNota.placeholder = 'Nota';
+  inputNota.value = item.note ?? '';
+  inputNota.addEventListener('click', (event) => event.stopPropagation());
+  inputNota.addEventListener('change', async () => {
+    await updateListItem(item.id, { note: inputNota.value.trim() || null });
+  });
+  campi.append(inputQuantita, inputNota);
+  info.appendChild(campi);
+
   row.append(check, info);
   row.addEventListener('click', () => toggleStato(item));
   return row;
@@ -574,20 +599,25 @@ document.getElementById('pool-new-btn').addEventListener('click', async () => {
   if (esistente) {
     // Già attivo altrove (NEL_CARRELLO/ACQUISTATO): seconda istanza
     // deliberata (es. Banane gialle + Banane rosse) — stessa apertura
-    // di "Mostra tutti" sul desktop (D-036), senza bisogno di un
-    // checkbox in più qui: nasce comunque dormiente, da attivare con
-    // un tap come le altre.
+    // di "Mostra tutti" sul desktop (D-036).
     if (!confirm(`"${name}" è già in lista. Creare comunque una seconda istanza?`)) {
       input.value = '';
       return;
     }
   }
 
-  const ok = await createListItem(currentListId, metaId);
-  if (ok) {
-    input.value = '';
-    await refreshLista();
-    renderPool();
+  // Nasce DA_ACQUISTARE per default DB (un solo meccanismo, D-032) —
+  // qui la si attiva subito, un solo tocco: stesso comportamento di
+  // "Aggiungi alla lista" sul desktop (D-036), non un passaggio
+  // "Attiva" separato da vedere.
+  const nuovaId = await createListItem(currentListId, metaId);
+  if (nuovaId) {
+    const ok = await updateListItem(nuovaId, { status: 'NEL_CARRELLO' });
+    if (ok) {
+      input.value = '';
+      await refreshLista();
+      poolSheet.classList.remove('open');
+    }
   }
 });
 

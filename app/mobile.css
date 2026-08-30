@@ -184,6 +184,24 @@ body {
   gap: 12px;
   margin-top: 4px;
 }
+
+.item-campi {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.item-campi input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+}
+.item-campi input::placeholder { color: var(--ink-faint); }
 .item-azioni .link-btn {
   padding: 0;
   font-size: 10px;
