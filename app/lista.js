@@ -3,14 +3,24 @@ import {
   fetchListItems,
   createListItem,
   updateListItem,
+  deleteListItem,
 } from './js/shoppingListItems.js';
-import { findOrCreateMetaArticle } from './js/metaArticles.js';
+import { findOrCreateMetaArticle, deleteMetaArticle } from './js/metaArticles.js';
 import { fetchArticlesForMetaArticle } from './js/articles.js';
 import { fetchFormatsForArticle } from './js/formats.js';
 import { createColumnBrowser } from './js/columnBrowser.js';
 
-const STATI = ['DA_ACQUISTARE', 'NEL_CARRELLO', 'ACQUISTATO', 'CANCELLATO'];
-const VINCOLI = ['LIBERO', 'PREFERITO', 'OBBLIGATORIO'];
+// Stesso ciclo di vita del canale mobile (D-032, evoluzione della UI
+// desktop dopo il primo giro di prove): DA_ACQUISTARE nasce sempre
+// così (nessuna eccezione, "un solo meccanismo") e resta nascosto
+// dietro il pannello "Pianificazione" — non più una select di stato
+// libera. NEL_CARRELLO/ACQUISTATO sono sempre entrambi visibili, un
+// click li scambia in entrambe le direzioni, anche da qui (a
+// differenza di mobile non c'è un vincolo "devi essere al
+// supermercato": qui la coerenza tra canali conta più di quella
+// sfumatura). CANCELLATO (D-008, dismissione vera) si raggiunge solo
+// con "Elimina" esplicito — niente più select da cui capitarci per
+// sbaglio.
 
 const nomeListaEl = document.getElementById('nome-lista');
 
@@ -26,16 +36,28 @@ const btnAggiungiVoce = document.getElementById('btn-aggiungi-voce');
 const checkboxMostraTutti = document.getElementById('checkbox-mostra-tutti');
 const checkboxMostraCancellati = document.getElementById('checkbox-mostra-cancellati');
 
-const listaVociEl = document.getElementById('lista-voci');
+const poolSearchEl = document.getElementById('pool-search');
+const poolListEl = document.getElementById('pool-list');
+const poolContatoreEl = document.getElementById('pool-contatore');
+
+const listaCarrelloEl = document.getElementById('lista-carrello');
+const listaAcquistatoEl = document.getElementById('lista-acquistato');
+const sezioneCancellatoEl = document.getElementById('sezione-cancellato');
+const listaCancellatoEl = document.getElementById('lista-cancellato');
+
+const btnPulisciAcquistati = document.getElementById('btn-pulisci-acquistati');
+const btnPulisciTutto = document.getElementById('btn-pulisci-tutto');
+
 const contatoreVoci = document.getElementById('contatore-voci');
 const densitaSwitchEl = document.getElementById('densita-switch');
 const stato = document.getElementById('stato');
 
 let currentListId = null;
 
-// Le voci CANCELLATO restano nel database (stato del ciclo di vita,
-// non cancellazione — DOMAIN_MODEL.md) ma di default non intasano più
-// l'elenco visibile: si possono rivedere con la checkbox sotto.
+// Mostra/nascondi la sezione Cancellato (D-008: dismissione vera, non
+// intasa di default). A differenza di prima non serve rifare la
+// fetch per cambiarla: allItems le contiene già tutte, si filtra solo
+// in fase di render.
 let mostraCancellati = false;
 
 // Meta-articoli già presenti in lista (stato diverso da CANCELLATO),
@@ -50,9 +72,11 @@ let presentMetaArticleIds = new Set();
 // "Mostra tutti" si torna a vedere anche i già presenti, riaggiungibili.
 let mostraTutti = false;
 
+let allItems = [];
+
 // Densità di visualizzazione (D-029): Estesa (card, solo scelta
 // manuale) / Media (riga tabellare, pensata per il PC) / Compatta
-// (titolo+stato sempre visibili, resto a comparsa per voce — pensata
+// (titolo+check sempre visibili, resto a comparsa per voce — pensata
 // per il supermercato). Preferenza salvata in localStorage (nessun
 // account/DB — D-010); se assente, si sceglie in base alla larghezza
 // viewport.
@@ -65,10 +89,6 @@ function densitaPredefinita() {
 
 let densita = localStorage.getItem(DENSITA_STORAGE_KEY);
 if (!DENSITA_VALIDE.includes(densita)) densita = densitaPredefinita();
-
-// Ultimo elenco filtrato (checkbox cancellate) recuperato da Supabase:
-// cambiare densità ridisegna da qui, senza un nuovo fetch.
-let ultimiItemsVisibili = [];
 
 const browser = createColumnBrowser({
   metaColumnEl: colonnaMetaLista,
@@ -86,9 +106,9 @@ checkboxMostraTutti.addEventListener('change', async () => {
   await browser.refreshMeta();
 });
 
-checkboxMostraCancellati.addEventListener('change', async () => {
+checkboxMostraCancellati.addEventListener('change', () => {
   mostraCancellati = checkboxMostraCancellati.checked;
-  await refreshItems();
+  renderLista();
 });
 
 function handleSelectionChange(selection) {
@@ -106,21 +126,6 @@ function handleSelectionChange(selection) {
   btnAggiungiVoce.disabled = false;
 }
 
-function createSelect(options, selectedValue, dataset) {
-  const select = document.createElement('select');
-  for (const opt of options) {
-    const option = document.createElement('option');
-    option.value = opt;
-    option.textContent = opt;
-    if (opt === selectedValue) option.selected = true;
-    select.appendChild(option);
-  }
-  for (const [key, value] of Object.entries(dataset)) {
-    select.dataset[key] = value;
-  }
-  return select;
-}
-
 function creaTitoloTesto(item) {
   let testo = item.meta_articles?.name ?? '(meta-articolo non disponibile)';
   if (item.articles) testo += ` → ${item.articles.name}`;
@@ -131,7 +136,8 @@ function creaTitoloTesto(item) {
 
 // Specializzazione progressiva (D-020): un solo passo alla volta, per
 // le voci già in lista (chi vuole scegliere subito la profondità usa
-// la navigazione a colonne qui sopra). Null se già completa.
+// la navigazione a colonne qui sopra). Null se già completa. Stesso
+// meccanismo che useremo su mobile per il dettaglio a fasi.
 function creaBottoneSpecializza(item) {
   if (!item.articles) {
     const btn = document.createElement('button');
@@ -154,12 +160,38 @@ function creaBottoneSpecializza(item) {
   return null;
 }
 
-function creaStatoSelect(item) {
-  return createSelect(STATI, item.status, { itemId: item.id, field: 'status' });
+// Un solo controllo per il ciclo di vita "vivo": un click scambia
+// NEL_CARRELLO<->ACQUISTATO in entrambe le direzioni, da qui come da
+// mobile (D-032) — niente più select libera con 4 stati.
+function creaCheckboxToggle(item) {
+  const label = document.createElement('label');
+  label.className = 'voce-check-label';
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.checked = item.status === 'ACQUISTATO';
+  input.title = item.status === 'ACQUISTATO' ? 'Acquistato — clic per rimettere nel carrello' : 'Segna come acquistato';
+  input.addEventListener('change', async () => {
+    const nuovo = item.status === 'ACQUISTATO' ? 'NEL_CARRELLO' : 'ACQUISTATO';
+    const ok = await updateListItem(item.id, { status: nuovo });
+    if (ok) await refreshAll();
+  });
+  label.appendChild(input);
+  return label;
 }
 
-function creaVincoloSelect(item) {
-  return createSelect(VINCOLI, item.constraint_type, { itemId: item.id, field: 'constraint_type' });
+// Dismissione vera (D-008): non cancella lo storico, solo esce dalla
+// lista attiva. Unico modo per raggiungere CANCELLATO da qui, ora che
+// non c'è più una select di stato libera.
+function creaBottoneElimina(item) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = 'Elimina';
+  btn.addEventListener('click', async () => {
+    if (!confirm(`Rimuovere "${item.meta_articles?.name ?? '(senza nome)'}" dalla lista? Resta nel catalogo.`)) return;
+    const ok = await updateListItem(item.id, { status: 'CANCELLATO' });
+    if (ok) await refreshAll();
+  });
+  return btn;
 }
 
 function creaQuantitaInput(item) {
@@ -170,16 +202,6 @@ function creaQuantitaInput(item) {
   input.value = item.quantity ?? '';
   input.dataset.itemId = item.id;
   input.dataset.field = 'quantity';
-  return input;
-}
-
-function creaUnitaInput(item) {
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.placeholder = 'Unità (es. kg, pz)';
-  input.value = item.quantity_unit ?? '';
-  input.dataset.itemId = item.id;
-  input.dataset.field = 'quantity_unit';
   return input;
 }
 
@@ -202,21 +224,15 @@ function renderItemEstesa(item) {
 
   const titolo = document.createElement('div');
   titolo.className = 'voce-titolo';
-  titolo.textContent = creaTitoloTesto(item);
+  titolo.append(creaCheckboxToggle(item), document.createTextNode(creaTitoloTesto(item)));
   div.appendChild(titolo);
 
   const bottoneSpecializza = creaBottoneSpecializza(item);
-  if (bottoneSpecializza) titolo.appendChild(bottoneSpecializza);
+  if (bottoneSpecializza) div.appendChild(bottoneSpecializza);
 
   const controlli = document.createElement('div');
   controlli.className = 'voce-controlli';
-  controlli.append(
-    creaStatoSelect(item),
-    creaVincoloSelect(item),
-    creaQuantitaInput(item),
-    creaUnitaInput(item),
-    creaNotaInput(item)
-  );
+  controlli.append(creaQuantitaInput(item), creaNotaInput(item), creaBottoneElimina(item));
   div.appendChild(controlli);
 
   return div;
@@ -228,6 +244,8 @@ function renderItemMedia(item) {
   div.className = 'voce-lista voce-media';
   div.dataset.itemId = item.id;
 
+  div.appendChild(creaCheckboxToggle(item));
+
   const titoloCell = document.createElement('div');
   titoloCell.className = 'voce-media-titolo';
   const titoloTesto = document.createElement('span');
@@ -235,22 +253,16 @@ function renderItemMedia(item) {
   titoloCell.appendChild(titoloTesto);
   const bottoneSpecializza = creaBottoneSpecializza(item);
   if (bottoneSpecializza) titoloCell.appendChild(bottoneSpecializza);
+  div.appendChild(titoloCell);
 
-  div.append(
-    titoloCell,
-    creaStatoSelect(item),
-    creaVincoloSelect(item),
-    creaQuantitaInput(item),
-    creaUnitaInput(item),
-    creaNotaInput(item)
-  );
+  div.append(creaQuantitaInput(item), creaNotaInput(item), creaBottoneElimina(item));
   return div;
 }
 
 function creaRigaIntestazioneMedia() {
   const div = document.createElement('div');
   div.className = 'voce-media voce-media-header';
-  for (const label of ['Voce', 'Stato', 'Vincolo', 'Qtà', 'Un.', 'Nota']) {
+  for (const label of ['', 'Voce', 'Qtà', 'Nota', '']) {
     const span = document.createElement('span');
     span.textContent = label;
     div.appendChild(span);
@@ -258,7 +270,7 @@ function creaRigaIntestazioneMedia() {
   return div;
 }
 
-// Compatta: titolo + stato sempre visibili (spuntabile al volo), il
+// Compatta: titolo + check sempre visibili (spuntabile al volo), il
 // resto si apre su richiesta per singola voce — <details> nativo,
 // nessuno stato JS in più (D-029).
 function renderItemCompatta(item) {
@@ -267,21 +279,21 @@ function renderItemCompatta(item) {
   details.dataset.itemId = item.id;
 
   const summary = document.createElement('summary');
+  const checkbox = creaCheckboxToggle(item);
+  // Senza questo, il click per spuntare rischia di far scattare anche
+  // il toggle apri/chiudi del <details> sottostante.
+  checkbox.addEventListener('click', (event) => event.stopPropagation());
   const titolo = document.createElement('span');
   titolo.className = 'voce-compatta-titolo';
   titolo.textContent = creaTitoloTesto(item);
-  const statoSelect = creaStatoSelect(item);
-  // Senza questo, il click per aprire il menu a tendina rischia di far
-  // scattare anche il toggle apri/chiudi del <details> sottostante.
-  statoSelect.addEventListener('click', (event) => event.stopPropagation());
-  summary.append(titolo, statoSelect);
+  summary.append(checkbox, titolo);
   details.appendChild(summary);
 
   const corpo = document.createElement('div');
   corpo.className = 'voce-compatta-corpo';
   const bottoneSpecializza = creaBottoneSpecializza(item);
   if (bottoneSpecializza) corpo.appendChild(bottoneSpecializza);
-  corpo.append(creaVincoloSelect(item), creaQuantitaInput(item), creaUnitaInput(item), creaNotaInput(item));
+  corpo.append(creaQuantitaInput(item), creaNotaInput(item), creaBottoneElimina(item));
   details.appendChild(corpo);
 
   return details;
@@ -293,14 +305,105 @@ function renderItem(item) {
   return renderItemEstesa(item);
 }
 
+// Cancellato: sola lettura, nessun controllo — è una dismissione
+// vera (D-008), non un'ennesima select da cui poterci ripiombare per
+// sbaglio.
+function renderItemCancellato(item) {
+  const div = document.createElement('div');
+  div.className = 'voce-lista';
+  div.style.opacity = '0.6';
+  div.textContent = creaTitoloTesto(item);
+  return div;
+}
+
+function renderListaSezione(containerEl, items, renderer, conHeader) {
+  containerEl.innerHTML = '';
+  if (densita === 'media' && conHeader && items.length > 0) {
+    containerEl.appendChild(creaRigaIntestazioneMedia());
+  }
+  if (items.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'colonna-vuota';
+    empty.textContent = 'Nessuna voce.';
+    containerEl.appendChild(empty);
+    return;
+  }
+  for (const item of items) containerEl.appendChild(renderer(item));
+}
+
+function renderPoolRow(item) {
+  const li = document.createElement('li');
+  li.className = 'pool-row';
+
+  const name = document.createElement('span');
+  name.className = 'pool-row-name';
+  name.textContent = creaTitoloTesto(item);
+  li.appendChild(name);
+
+  const btnAttiva = document.createElement('button');
+  btnAttiva.type = 'button';
+  btnAttiva.textContent = 'Attiva';
+  btnAttiva.addEventListener('click', async () => {
+    const ok = await updateListItem(item.id, { status: 'NEL_CARRELLO' });
+    if (ok) await refreshAll();
+  });
+
+  const btnElimina = document.createElement('button');
+  btnElimina.type = 'button';
+  btnElimina.textContent = 'Elimina dal catalogo';
+  btnElimina.addEventListener('click', async () => {
+    const nome = item.meta_articles?.name ?? '(senza nome)';
+    if (!confirm(`Eliminare "${nome}" dal catalogo? Non si può annullare.`)) return;
+    // Prima la voce dormiente (altrimenti il vincolo la blocca sempre),
+    // poi il meta-articolo — resta bloccato solo se una voce attiva
+    // altrove lo referenzia ancora (D-022).
+    await deleteListItem(item.id);
+    await deleteMetaArticle(item.meta_articles.id);
+    await refreshAll();
+  });
+
+  li.append(btnAttiva, btnElimina);
+  return li;
+}
+
+function renderPool() {
+  const daAcquistare = allItems.filter((i) => i.status === 'DA_ACQUISTARE');
+  const query = poolSearchEl.value.trim().toLowerCase();
+  const filtrati = query
+    ? daAcquistare.filter((i) => (i.meta_articles?.name ?? '').toLowerCase().includes(query))
+    : daAcquistare;
+
+  poolListEl.innerHTML = '';
+  if (filtrati.length === 0) {
+    const li = document.createElement('li');
+    li.className = 'colonna-vuota';
+    li.textContent = 'Nessuna voce in pianificazione.';
+    poolListEl.appendChild(li);
+  } else {
+    for (const item of filtrati) poolListEl.appendChild(renderPoolRow(item));
+  }
+  poolContatoreEl.textContent = `${daAcquistare.length}`;
+}
+
+poolSearchEl.addEventListener('input', renderPool);
+
 function renderLista() {
-  listaVociEl.innerHTML = '';
-  if (densita === 'media' && ultimiItemsVisibili.length > 0) {
-    listaVociEl.appendChild(creaRigaIntestazioneMedia());
+  const carrello = allItems.filter((i) => i.status === 'NEL_CARRELLO');
+  const acquistato = allItems.filter((i) => i.status === 'ACQUISTATO');
+
+  renderListaSezione(listaCarrelloEl, carrello, renderItem, true);
+  renderListaSezione(listaAcquistatoEl, acquistato, renderItem, true);
+
+  if (mostraCancellati) {
+    const cancellato = allItems.filter((i) => i.status === 'CANCELLATO');
+    sezioneCancellatoEl.hidden = false;
+    renderListaSezione(listaCancellatoEl, cancellato, renderItemCancellato, false);
+  } else {
+    sezioneCancellatoEl.hidden = true;
+    listaCancellatoEl.innerHTML = '';
   }
-  for (const item of ultimiItemsVisibili) {
-    listaVociEl.appendChild(renderItem(item));
-  }
+
+  renderPool();
 }
 
 function applicaDensita(nuovaDensita, { salva = true } = {}) {
@@ -322,17 +425,39 @@ densitaSwitchEl.addEventListener('click', (event) => {
 // viewport) fin dal caricamento, senza riscrivere subito localStorage.
 applicaDensita(densita, { salva: false });
 
-async function refreshItems() {
-  const items = await fetchListItems(currentListId);
+// Due pulizie bulk (D-032), entrambe riportano a DA_ACQUISTARE (mai a
+// CANCELLATO — sono voci ricorrenti da riusare, non da scartare).
+btnPulisciAcquistati.addEventListener('click', async () => {
+  const acquistati = allItems.filter((i) => i.status === 'ACQUISTATO');
+  if (acquistati.length === 0) return;
+  if (!confirm(`Riportare ${acquistati.length} voci acquistate in pianificazione?`)) return;
+  for (const item of acquistati) await updateListItem(item.id, { status: 'DA_ACQUISTARE' });
+  await refreshAll();
+});
+
+btnPulisciTutto.addEventListener('click', async () => {
+  const attivi = allItems.filter((i) => i.status === 'ACQUISTATO' || i.status === 'NEL_CARRELLO');
+  if (attivi.length === 0) return;
+  if (!confirm(`Riportare tutte le ${attivi.length} voci attive in pianificazione?`)) return;
+  for (const item of attivi) await updateListItem(item.id, { status: 'DA_ACQUISTARE' });
+  await refreshAll();
+});
+
+async function refreshAll() {
+  allItems = await fetchListItems(currentListId);
   presentMetaArticleIds = new Set(
-    items.filter((item) => item.status !== 'CANCELLATO').map((item) => item.meta_articles?.id)
+    allItems.filter((item) => item.status !== 'CANCELLATO').map((item) => item.meta_articles?.id)
   );
-
-  ultimiItemsVisibili = mostraCancellati ? items : items.filter((item) => item.status !== 'CANCELLATO');
+  // Ordine alfabetico per nome meta-articolo (v1: basta a semplificare
+  // ricerca/identificazione — un ordine cronologico resta possibile in
+  // futuro come opzione, non serve ora).
+  allItems.sort((a, b) => (a.meta_articles?.name ?? '').localeCompare(b.meta_articles?.name ?? '', 'it'));
   renderLista();
+  await browser.refreshMeta();
 
-  const daAcquistare = ultimiItemsVisibili.filter((item) => item.status === 'DA_ACQUISTARE').length;
-  contatoreVoci.textContent = `${ultimiItemsVisibili.length} voci · ${daAcquistare} da acquistare`;
+  const carrello = allItems.filter((i) => i.status === 'NEL_CARRELLO').length;
+  const acquistato = allItems.filter((i) => i.status === 'ACQUISTATO').length;
+  contatoreVoci.textContent = `${carrello} nel carrello · ${acquistato} acquistato`;
 }
 
 async function init() {
@@ -344,8 +469,7 @@ async function init() {
   }
   currentListId = list.id;
   nomeListaEl.textContent = list.name;
-  await refreshItems();
-  await browser.refreshMeta();
+  await refreshAll();
   stato.textContent = 'Connesso a Supabase.';
 }
 
@@ -372,124 +496,116 @@ btnAggiungiVoce.addEventListener('click', async () => {
   });
 
   if (ok) {
-    await refreshItems();
+    await refreshAll();
     // Il meta-articolo appena aggiunto sparisce dalla colonna
     // (metaFilter) e la selezione si azzera automaticamente.
     await browser.refreshMeta();
   }
 });
 
-// Un solo listener "change" delegato: distingue i campi diretti della
-// voce (stato, vincolo, quantità, unità, nota) dalle conferme di
-// specializzazione (select generati dinamicamente).
-listaVociEl.addEventListener('change', async (event) => {
-  const target = event.target;
-  const action = target.dataset.action;
+// Un solo listener "change"/"click" delegato per contenitore: la
+// specializzazione progressiva e i campi diretti (quantità, nota)
+// vivono sia in "Nel carrello" sia in "Acquistato".
+function attachRowHandlers(container) {
+  container.addEventListener('change', async (event) => {
+    const target = event.target;
+    const action = target.dataset.action;
 
-  if (action === 'conferma-articolo') {
-    const articleId = target.value;
-    if (!articleId) return;
-    const ok = await updateListItem(target.dataset.itemId, {
-      article_id: articleId,
-      format_id: null,
-    });
-    if (ok) await refreshItems();
-    return;
-  }
-
-  if (action === 'conferma-formato') {
-    const formatId = target.value;
-    if (!formatId) return;
-    const ok = await updateListItem(target.dataset.itemId, { format_id: formatId });
-    if (ok) await refreshItems();
-    return;
-  }
-
-  const field = target.dataset.field;
-  const itemId = target.dataset.itemId;
-  if (!field || !itemId) return;
-
-  let value = target.value;
-  if (field === 'quantity') {
-    value = value === '' ? null : Number(value);
-  } else if (value === '') {
-    value = null;
-  }
-
-  // Aggiornamento diretto, senza refresh completo della lista: evita
-  // di perdere il focus mentre si digita in un campo adiacente.
-  const ok = await updateListItem(itemId, { [field]: value });
-
-  // Eccezione: lo stato influenza quali meta-articoli sono disponibili
-  // nella colonna di aggiunta (un item CANCELLATO libera il suo
-  // meta-articolo). "change" scatta solo al termine della modifica
-  // (blur/selezione), mai durante la digitazione, quindi qui il
-  // refresh è sicuro.
-  if (ok && field === 'status') {
-    await refreshItems();
-    await browser.refreshMeta();
-  }
-});
-
-// Delegazione click: avvia la specializzazione progressiva mostrando
-// il selettore filtrato al posto del pulsante (per le voci già in
-// lista).
-listaVociEl.addEventListener('click', async (event) => {
-  const target = event.target;
-  const action = target.dataset.action;
-  if (!action) return;
-
-  if (action === 'espandi-articolo') {
-    const metaArticleId = target.dataset.metaArticleId;
-    const articles = await fetchArticlesForMetaArticle(metaArticleId);
-    if (articles.length === 0) {
-      alert('Nessun articolo associato a questo meta-articolo. Aggiungilo prima nel Catalogo.');
+    if (action === 'conferma-articolo') {
+      const articleId = target.value;
+      if (!articleId) return;
+      const ok = await updateListItem(target.dataset.itemId, {
+        article_id: articleId,
+        format_id: null,
+      });
+      if (ok) await refreshAll();
       return;
     }
 
-    const select = document.createElement('select');
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Seleziona articolo';
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    select.appendChild(placeholder);
-    for (const article of articles) {
-      const option = document.createElement('option');
-      option.value = article.id;
-      option.textContent = article.name;
-      select.appendChild(option);
-    }
-    select.dataset.itemId = target.dataset.itemId;
-    select.dataset.action = 'conferma-articolo';
-    target.replaceWith(select);
-  }
-
-  if (action === 'espandi-formato') {
-    const articleId = target.dataset.articleId;
-    const formats = await fetchFormatsForArticle(articleId);
-    if (formats.length === 0) {
-      alert('Nessun formato per questo articolo. Aggiungilo prima nel Catalogo.');
+    if (action === 'conferma-formato') {
+      const formatId = target.value;
+      if (!formatId) return;
+      const ok = await updateListItem(target.dataset.itemId, { format_id: formatId });
+      if (ok) await refreshAll();
       return;
     }
 
-    const select = document.createElement('select');
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Seleziona formato';
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    select.appendChild(placeholder);
-    for (const format of formats) {
-      const option = document.createElement('option');
-      option.value = format.id;
-      option.textContent = format.name;
-      select.appendChild(option);
+    const field = target.dataset.field;
+    const itemId = target.dataset.itemId;
+    if (!field || !itemId) return;
+
+    let value = target.value;
+    if (field === 'quantity') {
+      value = value === '' ? null : Number(value);
+    } else if (value === '') {
+      value = null;
     }
-    select.dataset.itemId = target.dataset.itemId;
-    select.dataset.action = 'conferma-formato';
-    target.replaceWith(select);
-  }
-});
+
+    // Aggiornamento diretto, senza refresh completo: evita di perdere
+    // il focus mentre si digita in un campo adiacente.
+    await updateListItem(itemId, { [field]: value });
+  });
+
+  container.addEventListener('click', async (event) => {
+    const target = event.target;
+    const action = target.dataset.action;
+    if (!action) return;
+
+    if (action === 'espandi-articolo') {
+      const metaArticleId = target.dataset.metaArticleId;
+      const articles = await fetchArticlesForMetaArticle(metaArticleId);
+      if (articles.length === 0) {
+        alert('Nessun articolo associato a questo meta-articolo. Aggiungilo prima nel Catalogo.');
+        return;
+      }
+
+      const select = document.createElement('select');
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Seleziona articolo';
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      select.appendChild(placeholder);
+      for (const article of articles) {
+        const option = document.createElement('option');
+        option.value = article.id;
+        option.textContent = article.name;
+        select.appendChild(option);
+      }
+      select.dataset.itemId = target.dataset.itemId;
+      select.dataset.action = 'conferma-articolo';
+      target.replaceWith(select);
+    }
+
+    if (action === 'espandi-formato') {
+      const articleId = target.dataset.articleId;
+      const formats = await fetchFormatsForArticle(articleId);
+      if (formats.length === 0) {
+        alert('Nessun formato per questo articolo. Aggiungilo prima nel Catalogo.');
+        return;
+      }
+
+      const select = document.createElement('select');
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Seleziona formato';
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      select.appendChild(placeholder);
+      for (const format of formats) {
+        const option = document.createElement('option');
+        option.value = format.id;
+        option.textContent = format.name;
+        select.appendChild(option);
+      }
+      select.dataset.itemId = target.dataset.itemId;
+      select.dataset.action = 'conferma-formato';
+      target.replaceWith(select);
+    }
+  });
+}
+
+attachRowHandlers(listaCarrelloEl);
+attachRowHandlers(listaAcquistatoEl);
 
 init();

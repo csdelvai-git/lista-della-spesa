@@ -18,8 +18,10 @@
 
   <h1 id="nome-lista">Lista della spesa</h1>
   <p class="subtitle">
-    Incremento Fase 2 — lista-first, con specializzazione progressiva
-    opzionale meta-articolo → articolo → formato
+    Stesso ciclo di vita del canale mobile (D-032): Da acquistare
+    (pianificazione, nascosta dietro "Pianificazione" qui sotto) →
+    Nel carrello → Acquistato — un click cambia stato in entrambe le
+    direzioni, da qualunque canale.
   </p>
 
   <section>
@@ -64,6 +66,17 @@
     <button type="button" id="btn-aggiungi-voce" disabled>Aggiungi alla lista</button>
   </section>
 
+  <details class="pannello" id="pool-pannello" open>
+    <summary>Pianificazione <span id="pool-contatore" class="contatore"></span></summary>
+    <p class="subtitle">
+      Le voci create qui sopra nascono qui (Da acquistare) — anche una
+      voce nuova, sempre: un solo meccanismo, coerente con mobile
+      (D-032). "Attiva" la fa comparire in "Nel carrello" qui sotto.
+    </p>
+    <input type="text" id="pool-search" placeholder="Cerca nella pianificazione…">
+    <ul id="pool-list"></ul>
+  </details>
+
   <div class="lista-toolbar">
     <label class="colonna-toggle">
       <input type="checkbox" id="checkbox-mostra-cancellati">
@@ -78,7 +91,25 @@
       </div>
     </div>
   </div>
-  <div id="lista-voci"></div>
+
+  <section>
+    <h2>Nel carrello</h2>
+    <div id="lista-carrello"></div>
+  </section>
+
+  <section>
+    <h2>Acquistato</h2>
+    <div id="lista-acquistato"></div>
+    <div class="barra-azioni">
+      <button type="button" id="btn-pulisci-acquistati">Pulisci acquistati</button>
+      <button type="button" id="btn-pulisci-tutto">Pulisci tutta la lista</button>
+    </div>
+  </section>
+
+  <section id="sezione-cancellato" hidden>
+    <h2>Cancellato</h2>
+    <div id="lista-cancellato"></div>
+  </section>
 
   <p id="stato" class="subtitle">Inizializzazione...</p>
 

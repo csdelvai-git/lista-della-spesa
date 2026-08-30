@@ -560,6 +560,9 @@ ul {
 }
 
 .voce-titolo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
@@ -591,10 +594,12 @@ ul {
 }
 
 /* Vista Media: riga tabellare compatta, tutti i campi sempre
-   visibili — pensata per preparare la lista da PC (D-029). */
+   visibili — pensata per preparare la lista da PC (D-029). Colonne:
+   check, titolo, quantità, nota, elimina (niente più stato/vincolo/
+   unità, tolti nel passaggio allo stesso ciclo di vita di mobile). */
 .voce-media {
   display: grid;
-  grid-template-columns: 1fr 108px 100px 68px 68px 1fr;
+  grid-template-columns: 24px 1fr 72px 1fr 68px;
   gap: 0.5rem;
   align-items: center;
   padding: 0.4rem 0.75rem;
@@ -632,13 +637,12 @@ ul {
   white-space: nowrap;
 }
 
-/* Vista Compatta: titolo + stato sempre visibili, il resto per voce
+/* Vista Compatta: titolo + check sempre visibili, il resto per voce
    si apre su richiesta (<details> nativo) — pensata per scorrere e
    spuntare la lista al supermercato (D-029). */
 .voce-compatta > summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.6rem;
   cursor: pointer;
   list-style: none;
@@ -650,17 +654,12 @@ ul {
 }
 
 .voce-compatta-titolo {
+  flex: 1;
   font-size: 0.88rem;
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.voce-compatta > summary select {
-  flex-shrink: 0;
-  width: auto;
-  min-width: 8rem;
 }
 
 .voce-compatta-corpo {
@@ -678,4 +677,55 @@ ul {
   min-width: 6.5rem;
   padding: 0.3rem 0.5rem;
   font-size: 0.78rem;
+}
+
+.voce-check-label {
+  display: flex;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.voce-check-label input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+/* Pannello "Pianificazione" (pool DA_ACQUISTARE, D-032): stesso
+   principio del "+" mobile ma sempre visibile, non dietro un foglio a
+   comparsa — sul desktop c'è spazio per tenerlo aperto. */
+#pool-pannello #pool-search {
+  width: 100%;
+  margin: 0.5rem 0 0.75rem;
+}
+
+#pool-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pool-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.pool-row:last-child {
+  border-bottom: none;
+}
+
+.pool-row-name {
+  flex: 1;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.pool-row button {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.55rem;
+  flex-shrink: 0;
 }

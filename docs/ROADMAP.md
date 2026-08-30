@@ -47,15 +47,28 @@ LIBERO/PREFERITO/OBBLIGATORIO; - stati DA_ACQUISTARE/NEL_CARRELLO/
 ACQUISTATO/CANCELLATO con transizione libera; - interfaccia in `app/`
 verificata end-to-end.
 
+Completato (D-035, dopo il primo uso reale del canale mobile): UI
+desktop riscritta per lo **stesso ciclo di vita del mobile**, non più
+un elenco unico con select libera a 4 stati — pannello "Pianificazione"
+sempre visibile (DA_ACQUISTARE: cerca, crea, attiva, elimina dal
+catalogo), due sezioni Nel carrello/Acquistato sempre entrambe
+visibili con un solo controllo che le scambia in entrambe le
+direzioni, due pulizie bulk (Pulisci acquistati/tutta la lista). Tolti
+vincolo e colonna unità (non si traducevano in azioni concrete nel
+flusso al supermercato); aggiunto "Elimina" esplicito per la
+dismissione vera (D-008), prima raggiungibile solo dalla select
+tolta. Specializzazione progressiva portata anche su mobile
+(`app/mobile.js`), stesso meccanismo del desktop.
+
 Da completare: - eventuali affinamenti UX.
 
 Gestione multi-lista (creazione, rinomina, più liste attive): non più
-in programma nella forma originaria. D-032 introduce un meccanismo
-alternativo — canale mobile con due gruppi (NEL_CARRELLO/ACQUISTATO)
-più un pool di pianificazione (DA_ACQUISTARE) riattivabile via "+",
-con pulizia bulk che riporta le voci pronte per il giro successivo
-invece di richiedere una lista nuova — verificato solo su mockup
-statico (`docs/vision/mobile-mockup.html`), non ancora implementato.
+in programma nella forma originaria. D-032/D-035 introducono un
+meccanismo alternativo — due gruppi (NEL_CARRELLO/ACQUISTATO) più un
+pool di pianificazione (DA_ACQUISTARE) riattivabile via "+"
+(mobile)/pannello sempre aperto (desktop), con pulizia bulk che
+riporta le voci pronte per il giro successivo invece di richiedere una
+lista nuova — implementato e verificato su entrambi i canali.
 
 ## Fase 2.5 --- Test UX reale e affinamenti catalogo/lista
 
@@ -260,6 +273,11 @@ Completato:
 Piccola estensione di `js/shoppingListItems.js` per questo lavoro:
 `deleteListItem(id)`, usata dallo swipe-elimina del pool prima del
 tentativo di cancellare il meta-articolo.
+
+Aggiornamento (D-035): tab Lista esteso con Specializza articolo/
+formato ed Elimina, per la stessa parità di ciclo di vita col desktop
+— vedi D-035 in DECISIONS.md per il quadro completo (riguarda
+soprattutto la riscrittura desktop, ma ha toccato anche questo tab).
 
 Rimandato: tab Scansiona reale.
 

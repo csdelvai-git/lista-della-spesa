@@ -178,6 +178,21 @@ body {
 .item-row.done .item-name { color: var(--ink-faint); text-decoration: line-through; }
 .item-sub { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); display: block; }
 
+.item-azioni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+.item-azioni .link-btn {
+  padding: 0;
+  font-size: 10px;
+}
+.item-azioni .confirm-select {
+  font-size: 12px;
+  padding: 5px 6px;
+}
+
 .empty-hint {
   font-size: 12.5px;
   color: var(--ink-faint);

@@ -553,3 +553,62 @@ sopra".
 Non ancora affrontato: nessuna azione per specializzare in un secondo
 momento una rilevazione lasciata non classificata (resta un limite
 noto, non un regresso — prima non esisteva comunque).
+
+### D-035 --- Ciclo di vita unificato desktop/mobile (evoluzione di D-032)
+
+Dal primo uso reale del canale mobile: lo stesso stato letto dai due
+canali sembrava un'incongruenza da due lati opposti. Sul desktop,
+un elenco unico con select di stato libera mostrava voci DA_ACQUISTARE
+mescolate a quelle attive — "in lista ma da acquistare" sembrava un
+errore, anche se era il comportamento voluto (D-032: DA_ACQUISTARE è
+lo stato "di riposo" che il desktop mostra come principale). Sul
+mobile, la vista Lista nasconde DA_ACQUISTARE dietro il "+" per
+design — ma con la maggior parte del catalogo lì (tipico se costruito
+da desktop), la lista mobile appariva quasi vuota rispetto al
+desktop. Stessa causa, due sintomi.
+
+**Decisione**: stesso ciclo di vita, stessa visibilità, su entrambi i
+canali — non più "il desktop mostra tutto, il mobile nasconde la
+pianificazione".
+
+- DA_ACQUISTARE nasce sempre così (invariato, D-032 — "un solo
+  meccanismo, niente casi speciali") e resta nascosto dietro un
+  pannello "Pianificazione" su entrambi i canali: sempre aperto in
+  pagina su desktop (c'è spazio), dietro "+" su mobile (schermo
+  piccolo). Stesse azioni ovunque: cerca, crea al volo, attiva (→
+  NEL_CARRELLO), elimina dal catalogo (cancella prima la voce
+  dormiente, altrimenti il vincolo la blocca sempre — poi
+  `deleteMetaArticle`, bloccato solo se una voce attiva altrove lo
+  referenzia ancora, D-022).
+- NEL_CARRELLO e ACQUISTATO sono sempre entrambi visibili, in due
+  gruppi; un solo controllo (checkbox su desktop, tap su mobile) li
+  scambia in **entrambe le direzioni**, anche da desktop — si
+  abbandona la riserva "solo mobile può confermare l'acquisto,
+  perché sei fisicamente al supermercato": la coerenza tra i due
+  canali vale più di quella sfumatura.
+- Due pulizie bulk (Pulisci acquistati / Pulisci tutta la lista,
+  già in D-032) ora su entrambi i canali, sempre → DA_ACQUISTARE, mai
+  → CANCELLATO.
+
+**Tolto dal desktop** (semplificazione, non solo parità con mobile):
+select di stato libera a 4 valori, vincolo (LIBERO/PREFERITO/
+OBBLIGATORIO — non si traduceva in azioni concrete nel flusso al
+supermercato), colonna unità.
+
+**Tenuto su entrambi**: quantità, nota, specializzazione progressiva
+("Specializza articolo/formato", D-020/D-021) — ora anche su mobile,
+stesso meccanismo del desktop, per il dettaglio "a fasi" già concordato
+(si sceglie il meta-articolo per attivare la voce, articolo/formato si
+aggiungono quando si vuole, non necessariamente subito).
+
+**Aggiunto**: bottone "Elimina" esplicito (→ CANCELLATO, dismissione
+vera D-008) su ogni voce attiva, su entrambi i canali — prima
+raggiungibile solo dalla select di stato ora tolta; senza sostituto
+si sarebbe persa la possibilità di cancellare davvero una voce.
+
+Implementazione: `app/lista.html`/`app/lista.js` riscritti (pannello
+"Pianificazione", due sezioni Nel carrello/Acquistato, niente più
+select stato/vincolo/unità); `app/mobile.js` esteso con
+Specializza/Elimina sulle voci; `app/style.css` aggiornato (griglia
+`.voce-media` a 5 colonne, nuove classi `.voce-check-label`/
+`.pool-row`).

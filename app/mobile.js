@@ -17,8 +17,8 @@ import {
   deleteListItem,
 } from './js/shoppingListItems.js';
 import { fetchMetaArticles, findOrCreateMetaArticle, deleteMetaArticle } from './js/metaArticles.js';
-import { fetchArticles, findOrCreateArticle } from './js/articles.js';
-import { findOrCreateFormat } from './js/formats.js';
+import { fetchArticles, fetchArticlesForMetaArticle, findOrCreateArticle } from './js/articles.js';
+import { fetchFormatsForArticle, findOrCreateFormat } from './js/formats.js';
 import { ensureAssociation } from './js/associations.js';
 import { fetchSupermarkets } from './js/supermarkets.js';
 import { addPendingPhoto, listPendingPhotos, removePendingPhoto } from './js/photoQueue.js';
@@ -66,6 +66,94 @@ let flattenShopId = null; // null = "Tutti" (nessun filtro per supermercato)
 const chipRowEl = document.getElementById('chip-row');
 const listaDynamicEl = document.getElementById('lista-dynamic');
 
+// Specializzazione progressiva (D-020/D-021), stesso meccanismo del
+// desktop: scegli solo il meta-articolo ora, il dettaglio quando
+// vuoi. Qui autonoma per riga (niente delega su un contenitore
+// condiviso come su desktop — ogni riga si rigenera comunque a ogni
+// render).
+function creaBottoneSpecializza(item) {
+  if (!item.articles) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'link-btn';
+    btn.textContent = 'Specializza articolo';
+    btn.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      const articles = await fetchArticlesForMetaArticle(item.meta_articles.id);
+      if (articles.length === 0) {
+        alert('Nessun articolo associato a questo meta-articolo. Aggiungilo prima nel Catalogo.');
+        return;
+      }
+      const select = creaSelectSpecializza('Seleziona articolo', articles);
+      select.addEventListener('change', async () => {
+        if (!select.value) return;
+        const ok = await updateListItem(item.id, { article_id: select.value, format_id: null });
+        if (ok) await refreshLista();
+      });
+      btn.replaceWith(select);
+    });
+    return btn;
+  }
+  if (!item.formats) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'link-btn';
+    btn.textContent = 'Specializza formato';
+    btn.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      const formats = await fetchFormatsForArticle(item.articles.id);
+      if (formats.length === 0) {
+        alert('Nessun formato per questo articolo. Aggiungilo prima nel Catalogo.');
+        return;
+      }
+      const select = creaSelectSpecializza('Seleziona formato', formats);
+      select.addEventListener('change', async () => {
+        if (!select.value) return;
+        const ok = await updateListItem(item.id, { format_id: select.value });
+        if (ok) await refreshLista();
+      });
+      btn.replaceWith(select);
+    });
+    return btn;
+  }
+  return null;
+}
+
+function creaSelectSpecializza(placeholderText, opzioni) {
+  const select = document.createElement('select');
+  select.className = 'confirm-select';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = placeholderText;
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  select.appendChild(placeholder);
+  for (const opzione of opzioni) {
+    const opt = document.createElement('option');
+    opt.value = opzione.id;
+    opt.textContent = opzione.name;
+    select.appendChild(opt);
+  }
+  select.addEventListener('click', (event) => event.stopPropagation());
+  return select;
+}
+
+// Dismissione vera (D-008): unico modo per raggiungere CANCELLATO da
+// qui — le pulizie bulk riportano solo a DA_ACQUISTARE, mai qui.
+function creaBottoneElimina(item) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'link-btn';
+  btn.textContent = 'Elimina';
+  btn.addEventListener('click', async (event) => {
+    event.stopPropagation();
+    if (!confirm(`Rimuovere "${item.meta_articles?.name ?? '(senza nome)'}" dalla lista? Resta nel catalogo.`)) return;
+    const ok = await updateListItem(item.id, { status: 'CANCELLATO' });
+    if (ok) await refreshLista();
+  });
+  return btn;
+}
+
 function renderItemRow(item) {
   const row = document.createElement('div');
   row.className = 'item-row' + (item.status === 'ACQUISTATO' ? ' done' : '');
@@ -87,6 +175,13 @@ function renderItemRow(item) {
     sub.textContent = dettagli.join(' · ');
     info.appendChild(sub);
   }
+
+  const azioni = document.createElement('div');
+  azioni.className = 'item-azioni';
+  const bottoneSpecializza = creaBottoneSpecializza(item);
+  if (bottoneSpecializza) azioni.appendChild(bottoneSpecializza);
+  azioni.appendChild(creaBottoneElimina(item));
+  info.appendChild(azioni);
 
   row.append(check, info);
   row.addEventListener('click', () => toggleStato(item));
@@ -197,6 +292,10 @@ function renderLista() {
 
 async function refreshLista() {
   allItems = await fetchListItems(currentListId);
+  // Ordine alfabetico (stesso criterio del desktop): semplifica
+  // ricerca/identificazione sia qui che nel pool "+", che legge dallo
+  // stesso array.
+  allItems.sort((a, b) => (a.meta_articles?.name ?? '').localeCompare(b.meta_articles?.name ?? '', 'it'));
   renderLista();
 }
 
