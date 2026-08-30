@@ -98,12 +98,20 @@
         type="file"
         id="input-nuova-foto-cartellino"
         accept="image/*"
-        capture="environment"
         multiple
         hidden
       >
       Scatta/aggiungi foto
     </label>
+    <!--
+      Niente `capture="environment"`: con quell'attributo la maggior
+      parte dei browser mobile salta la scelta e apre solo la
+      fotocamera, impedendo di riusare foto già scattate. Senza,
+      compare la scelta normale (Scatta foto / Libreria foto) — un
+      tap in più al supermercato, ma serve anche a testare con foto
+      già fatte.
+    -->
+
     <div id="coda-foto-list" class="coda-foto-list"></div>
   </details>
 
