@@ -181,11 +181,21 @@ function renderCodaFotoItem(item, supermarkets) {
   const card = document.createElement('div');
   card.className = 'coda-foto-item';
 
+  // Cliccabile per il pieno formato (nuova scheda): con solo la
+  // miniatura è difficile verificare che i dati proposti dall'AI
+  // corrispondano davvero al cartellino.
+  const imgLink = document.createElement('a');
+  imgLink.target = '_blank';
+  imgLink.rel = 'noopener';
+  imgLink.title = 'Apri la foto a pieno formato';
+
   const img = document.createElement('img');
   img.className = 'coda-foto-anteprima';
   img.alt = 'Foto cartellino in coda';
   img.src = URL.createObjectURL(item.blob);
   codaFotoObjectUrls.push(img.src);
+  imgLink.href = img.src;
+  imgLink.appendChild(img);
 
   const meta = document.createElement('span');
   meta.className = 'subtitle';
@@ -372,7 +382,7 @@ function renderCodaFotoItem(item, supermarkets) {
   corpo.className = 'coda-foto-corpo';
   corpo.append(meta, form, rigaNormalizzato, etichettaClassificazione, rigaClassificazione, riquadroAi);
 
-  card.append(img, corpo);
+  card.append(imgLink, corpo);
   return card;
 }
 

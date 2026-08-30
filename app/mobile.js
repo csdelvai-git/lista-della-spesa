@@ -450,6 +450,13 @@ let modalObjectUrl = null;
 const cartelliniListEl = document.getElementById('cartellini-list');
 const cmModal = document.getElementById('cartellino-modal');
 const cmImg = document.getElementById('cm-img');
+// Cliccabile per il pieno formato (nuova scheda) — l'anteprima nel
+// foglio è ritagliata (object-fit: cover), non basta per verificare i
+// dati proposti dall'AI.
+cmImg.style.cursor = 'zoom-in';
+cmImg.addEventListener('click', () => {
+  if (cmImg.src) window.open(cmImg.src, '_blank', 'noopener');
+});
 const cmTime = document.getElementById('cm-time');
 const cmSupermercato = document.getElementById('cm-supermercato');
 const cmPrezzo = document.getElementById('cm-prezzo');
