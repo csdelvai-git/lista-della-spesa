@@ -480,3 +480,37 @@ La modalità "barcode + scontrino incrociati" (D-030) resta rimandata,
 invariata. La UI reale (mobile, funzionante, collegata a Supabase) non
 è ancora costruita: questa decisione fissa solo il modello dietro al
 mockup statico, da implementare come incremento successivo.
+
+### D-033 --- Provider e architettura per l'analisi AI dei cartellini (Fase 4, D-030 modalità 2)
+
+Segue la ricerca in `docs/analisi_ocr_visione_cartellini.md`.
+
+**Provider**: Claude (Anthropic API), con chiave personale dell'utente
+— non Google Vision/Gemini né OCR tradizionale. La differenza di costo
+tra provider è irrilevante ai volumi previsti (centesimi/mese); il
+criterio è restare in un solo ecosistema, già usato per lo sviluppo.
+Foto inviata direttamente al modello multimodale (niente OCR + parsing
+separato). Modello: Claude Haiku 4.5, sufficiente per un'estrazione
+campi semplice.
+
+**Architettura**: la chiave API non può stare nel frontend statico
+(GitHub Pages). Si aggiunge una Supabase Edge Function
+(`analizza-cartellino`) come proxy: riceve la foto dal frontend, chiama
+l'API Anthropic con la chiave tenuta come secret lato Supabase, ritorna
+un JSON con i campi estratti. Nessun nuovo servizio esterno da gestire,
+si appoggia all'infrastruttura Supabase già in uso.
+
+**Nessuna modifica di schema**: l'esito dell'analisi pre-riempie solo i
+campi già esistenti nella form "Cartellini da caricare"
+(supermercato/prezzo confezione, più prezzo normalizzato/nome prodotto
+come suggerimento informativo non persistito). L'utente conferma o
+corregge prima di "Carica", che resta invariato (`source` rimane
+`'MANUALE'`) — coerente con D-006 (Acquisizione → Proposta → Revisione
+→ Conferma): l'AI produce solo la proposta, non salva da sola.
+
+Implementazione: `supabase/functions/analizza-cartellino/index.ts`
+(function), `app/js/aiCartellino.js` (chiamata dal frontend), bottone
+"Analizza (AI)" nella card di ogni foto in coda (`app/app.js`). Deploy
+del secret e della function non automatizzabile da Claude Code (serve
+login interattivo e la chiave personale) — passi in
+`docs/deploy_analizza_cartellino.md`.

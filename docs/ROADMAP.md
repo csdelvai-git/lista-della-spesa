@@ -188,16 +188,22 @@ separato" già presente prima in `app.js`. Verificato end-to-end via
 UI reale (foto → coda → completamento dati → upload → rilevazione +
 immagine registrate, rimossa dalla coda).
 
-Da completare (3.2, D-030 modalità 2): **analisi in loop, opzionale**
-— quando si sceglierà il servizio OCR/AI (decisione non ancora presa:
-quale servizio, chiave/costo), si aggiunge un'azione "Analizza" sulla
-stessa form di completamento per-foto già costruita, che pre-riempie
-gli stessi campi (supermercato/prezzo, ed eventuali altri) per
-conferma — non una rilavorazione della coda/upload. Coerente con
-D-006 (Acquisizione→Proposta→Revisione→Conferma); questo passo
-anticipa volutamente una fetta della Fase 4 (estrazione dati), con
-consenso esplicito, non come sviluppo autonomo di funzionalità
-future.
+Completato (3.2, D-030 modalità 2, D-033): **analisi in loop,
+opzionale** — provider scelto: Claude (Anthropic API, chiave
+personale), via Supabase Edge Function proxy (`analizza-cartellino`).
+Azione "Analizza (AI)" sulla stessa form di completamento per-foto già
+costruita, che pre-riempie prezzo/supermercato (nome prodotto e
+prezzo/unità come suggerimento informativo) per conferma — non una
+rilavorazione della coda/upload. Coerente con D-006
+(Acquisizione→Proposta→Revisione→Conferma); questo passo anticipa
+volutamente una fetta della Fase 4 (estrazione dati), con consenso
+esplicito, non come sviluppo autonomo di funzionalità future.
+Implementato lato codice (`supabase/functions/analizza-cartellino/`,
+`app/js/aiCartellino.js`, bottone in `app/app.js`); **deploy della
+function e del secret ancora da fare** (richiede login interattivo e
+chiave personale, non automatizzabile — passi in
+`docs/deploy_analizza_cartellino.md`), quindi non ancora verificato
+end-to-end.
 
 Rimandato: - il resto della Fase 4 (suggerimenti, gestione
 incertezza su più campioni); - la modalità "barcode + scontrino"

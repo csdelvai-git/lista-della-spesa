@@ -435,6 +435,10 @@ ul {
   padding: 0.35rem 0.6rem;
 }
 
+.coda-foto-suggerimento {
+  font-style: italic;
+}
+
 #relations-container ul li,
 #supermarkets-list li {
   padding: 0.4rem 0;
