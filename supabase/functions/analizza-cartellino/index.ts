@@ -15,6 +15,13 @@
 // Deploy e configurazione: vedi docs/deploy_analizza_cartellino.md
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+// Richiesto dall'API Anthropic per le chiavi "identity-linked" (create da
+// console.anthropic.com collegate a un account, non le vecchie chiavi
+// standalone): senza questo header la richiesta viene rifiutata con
+// "anthropic-workspace-id is required...". ID del workspace "Default"
+// dell'organizzazione: non è un segreto (a differenza della chiave), va
+// bene hardcoded — cambia solo se in futuro si usa un workspace diverso.
+const ANTHROPIC_WORKSPACE_ID = 'wrkspc_01VXiSLchuVyS3Ag8GNSkCQo';
 const MODEL = 'claude-haiku-4-5-20251001';
 
 const CORS_HEADERS = {
@@ -87,6 +94,7 @@ Deno.serve(async (req) => {
     headers: {
       'x-api-key': ANTHROPIC_API_KEY,
       'anthropic-version': '2023-06-01',
+      'anthropic-workspace-id': ANTHROPIC_WORKSPACE_ID,
       'content-type': 'application/json',
     },
     body: JSON.stringify({

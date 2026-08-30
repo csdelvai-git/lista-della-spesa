@@ -198,12 +198,11 @@ rilavorazione della coda/upload. Coerente con D-006
 (Acquisizione→Proposta→Revisione→Conferma); questo passo anticipa
 volutamente una fetta della Fase 4 (estrazione dati), con consenso
 esplicito, non come sviluppo autonomo di funzionalità future.
-Implementato lato codice (`supabase/functions/analizza-cartellino/`,
-`app/js/aiCartellino.js`, bottone in `app/app.js`); **deploy della
-function e del secret ancora da fare** (richiede login interattivo e
-chiave personale, non automatizzabile — passi in
-`docs/deploy_analizza_cartellino.md`), quindi non ancora verificato
-end-to-end.
+Implementato (`supabase/functions/analizza-cartellino/`,
+`app/js/aiCartellino.js`, bottone in `app/app.js`) e **deployato**
+(secret `ANTHROPIC_API_KEY` impostato, function attiva su Supabase,
+verificata end-to-end con una chiamata di test). Non ancora provato
+con una foto reale di cartellino dall'app.
 
 Rimandato: - il resto della Fase 4 (suggerimenti, gestione
 incertezza su più campioni); - la modalità "barcode + scontrino"

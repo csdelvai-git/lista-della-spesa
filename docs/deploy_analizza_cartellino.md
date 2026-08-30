@@ -37,6 +37,17 @@ secret lato Supabase.
 supabase functions deploy analizza-cartellino
 ```
 
+## Nota: chiavi API "identity-linked"
+
+Se la chiave creata su console.anthropic.com è di tipo "identity-linked"
+(collegata a un account/organizzazione — il flusso attuale di creazione
+chiave lo è di default), l'API Anthropic richiede anche l'header
+`anthropic-workspace-id`, altrimenti risponde con `anthropic-workspace-id
+is required...`. L'ID del workspace ("Default") non è un segreto, è già
+hardcoded in `index.ts` come `ANTHROPIC_WORKSPACE_ID`. Va aggiornato solo
+se in futuro si usa un workspace diverso (Console Anthropic → Organization
+Settings → Workspaces).
+
 ## 5. Verifica
 
 Apri l'app (locale o GitHub Pages), sezione "Cartellini da caricare",
