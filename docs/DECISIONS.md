@@ -654,3 +654,17 @@ Implementazione: `createListItem` (`js/shoppingListItems.js`) ritorna
 ora l'id della riga creata invece di un booleano, per poterla attivare
 subito senza un refetch — i chiamanti esistenti restano compatibili
 (un id è comunque truthy).
+
+**Bug scoperto dopo la pubblicazione**: togliendo il pannello
+"Pianificazione" (questa stessa decisione), le voci dormienti sono
+diventate invisibili ovunque — ma restavano comunque nel database e
+bloccavano ancora `deleteArticle`/`deleteFormat`/`deleteMetaArticle`
+(le FK di `shopping_list_items` verso meta_article_id/article_id/
+format_id non hanno `ON DELETE`), senza alcun modo per l'utente di
+vedere o rimuovere il blocco. Corretto: le tre funzioni ora ripuliscono
+prima le voci dormienti (`DA_ACQUISTARE`) che referenziano l'entità,
+poi tentano l'eliminazione — una voce attiva altrove blocca comunque
+correttamente (D-022). Stesso principio già applicato al pool mobile
+per il meta-articolo, ora dentro le funzioni stesse invece che nei
+singoli chiamanti (`js/metaArticles.js`, `js/articles.js`,
+`js/formats.js`).

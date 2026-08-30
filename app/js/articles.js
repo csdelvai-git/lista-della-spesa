@@ -133,6 +133,12 @@ export async function setArticleStatus(id, status) {
 // di inserimento, non per il normale fine-vita di un articolo (per
 // quello vedi setArticleStatus/D-008).
 export async function deleteArticle(id) {
+  // Stessa pulizia di deleteMetaArticle: una voce dormiente
+  // (DA_ACQUISTARE) che referenzia questo articolo bloccherebbe per
+  // sempre l'eliminazione (FK senza ON DELETE), invisibile dopo
+  // D-036. Una voce attiva altrove blocca comunque più sotto (D-022).
+  await supabase.from('shopping_list_items').delete().eq('article_id', id).eq('status', 'DA_ACQUISTARE');
+
   const { error } = await supabase.from('articles').delete().eq('id', id);
 
   if (error) {

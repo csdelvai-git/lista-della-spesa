@@ -72,6 +72,14 @@ export async function updateMetaArticle(id, name) {
 // database; se il meta-articolo è usato in una voce di lista attiva,
 // l'eliminazione viene bloccata (errore leggibile).
 export async function deleteMetaArticle(id) {
+  // Le voci dormienti (DA_ACQUISTARE) non sono impegni reali — la FK
+  // su shopping_list_items non ha ON DELETE, quindi bloccherebbero
+  // per sempre un meta-articolo mai attivato, invisibili dopo D-036
+  // (niente più pannello "Pianificazione" da cui vederle/toglierle).
+  // Le rimuove prima: una voce attiva altrove blocca comunque
+  // l'eliminazione più sotto (D-022).
+  await supabase.from('shopping_list_items').delete().eq('meta_article_id', id).eq('status', 'DA_ACQUISTARE');
+
   const { error } = await supabase.from('meta_articles').delete().eq('id', id);
 
   if (error) {

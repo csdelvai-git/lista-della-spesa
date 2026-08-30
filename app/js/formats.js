@@ -106,6 +106,13 @@ export async function setFormatStatus(id, status) {
 // Cancellazione reale, distinta dalla dismissione (vedi
 // setFormatStatus/D-008).
 export async function deleteFormat(id) {
+  // Stessa pulizia di deleteMetaArticle/deleteArticle: una voce
+  // dormiente (DA_ACQUISTARE) che referenzia questo formato
+  // bloccherebbe per sempre l'eliminazione (FK senza ON DELETE),
+  // invisibile dopo D-036. Una voce attiva altrove blocca comunque
+  // più sotto (D-022).
+  await supabase.from('shopping_list_items').delete().eq('format_id', id).eq('status', 'DA_ACQUISTARE');
+
   const { error } = await supabase.from('formats').delete().eq('id', id);
 
   if (error) {
