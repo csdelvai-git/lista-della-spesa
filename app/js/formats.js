@@ -16,6 +16,45 @@ export async function fetchFormatsForArticle(articleId) {
   return data;
 }
 
+// Fase 4 (classificazione al momento del caricamento foto, D-030):
+// stesso pattern di findOrCreateArticle, ma lo scope del duplicato è il
+// singolo articolo (1:N, D-003 nel dominio) — un formato con lo stesso
+// nome su un articolo diverso è un'entità distinta, non un duplicato.
+export async function findOrCreateFormat(articleId, name) {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('formats')
+    .select('id')
+    .eq('article_id', articleId)
+    .ilike('name', trimmed)
+    .limit(1);
+
+  if (fetchError) {
+    alert(`Errore ricerca formato: ${fetchError.message}`);
+    console.error(fetchError);
+    return null;
+  }
+
+  if (existing && existing.length > 0) {
+    return existing[0].id;
+  }
+
+  const { data, error } = await supabase
+    .from('formats')
+    .insert({ article_id: articleId, name: trimmed })
+    .select('id')
+    .single();
+
+  if (error) {
+    alert(`Errore creazione formato: ${error.message}`);
+    console.error(error);
+    return null;
+  }
+  return data.id;
+}
+
 export async function createFormat(articleId, name) {
   const trimmed = name.trim();
   if (!trimmed) return false;

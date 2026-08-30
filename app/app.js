@@ -1,17 +1,27 @@
 import {
+  fetchMetaArticles,
   createMetaArticle,
   updateMetaArticle,
   deleteMetaArticle,
+  findOrCreateMetaArticle,
 } from './js/metaArticles.js';
 import {
+  fetchArticles,
   fetchArticlesNotAssociatedWith,
   createArticle,
   updateArticle,
   setArticleStatus,
   deleteArticle,
+  findOrCreateArticle,
 } from './js/articles.js';
-import { createAssociation, deleteAssociation } from './js/associations.js';
-import { createFormat, updateFormat, setFormatStatus, deleteFormat } from './js/formats.js';
+import { createAssociation, deleteAssociation, ensureAssociation } from './js/associations.js';
+import {
+  createFormat,
+  updateFormat,
+  setFormatStatus,
+  deleteFormat,
+  findOrCreateFormat,
+} from './js/formats.js';
 import { loadRelations } from './js/relations.js';
 import { createColumnBrowser } from './js/columnBrowser.js';
 import { fetchSupermarkets, createSupermarket } from './js/supermarkets.js';
@@ -166,6 +176,16 @@ async function refreshCodaFotoSupermercati() {
   }
 }
 
+// Stima grezza del formato (es. "500 g", "1 kg", "3x80g") a partire dal
+// testo del nome prodotto letto dall'AI — solo un punto di partenza per
+// il campo editabile, non un parser affidabile: pattern non
+// riconosciuti restano un campo vuoto da compilare a mano.
+function estraiFormatoDaTesto(testo) {
+  const match = testo.match(/\d+\s?x\s?\d+(?:[.,]\d+)?\s?(?:kg|g|l|ml|cl)\b/i)
+    ?? testo.match(/\d+(?:[.,]\d+)?\s?(?:kg|g|l|ml|cl)\b/i);
+  return match ? match[0].replace(',', '.') : '';
+}
+
 function renderCodaFotoItem(item, supermarkets) {
   const card = document.createElement('div');
   card.className = 'coda-foto-item';
@@ -203,11 +223,29 @@ function renderCodaFotoItem(item, supermarkets) {
   inputUnita.placeholder = 'unità (kg, l…)';
   inputUnita.maxLength = 10;
 
+  // Classificazione (D-034, evoluzione di D-030): facoltativa — se
+  // lasciata vuota la rilevazione resta non identificata come prima
+  // (D-005). Se compilata, "Carica" trova-o-crea meta-articolo/
+  // articolo/formato con lo stesso pattern già usato in Lista
+  // (findOrCreateMetaArticle), esattamente come selezionarli a mano
+  // nelle colonne del Catalogo qui sopra.
+  const inputMetaArticolo = document.createElement('input');
+  inputMetaArticolo.type = 'text';
+  inputMetaArticolo.placeholder = 'Meta-articolo (es. Affettati)';
+  inputMetaArticolo.setAttribute('list', 'coda-foto-datalist-meta');
+
+  const inputArticolo = document.createElement('input');
+  inputArticolo.type = 'text';
+  inputArticolo.placeholder = 'Articolo (prodotto commerciale)';
+  inputArticolo.setAttribute('list', 'coda-foto-datalist-articoli');
+
+  const inputFormato = document.createElement('input');
+  inputFormato.type = 'text';
+  inputFormato.placeholder = 'Formato (es. 500 g)';
+
   // Riquadro di revisione AI (D-006: Acquisizione -> Proposta ->
-  // Revisione -> Conferma): il nome prodotto è solo un suggerimento
-  // informativo, non c'è ancora un campo dove salvarlo (D-005, nessuna
-  // classificazione qui) — prezzo e unità normalizzati invece sono
-  // editabili sopra e vengono salvati con "Carica".
+  // Revisione -> Conferma): tutto qui è solo un suggerimento — i campi
+  // veri, da controllare/correggere prima di "Carica", sono quelli sopra.
   const riquadroAi = document.createElement('div');
   riquadroAi.className = 'coda-foto-ai-box';
   riquadroAi.hidden = true;
@@ -240,6 +278,10 @@ function renderCodaFotoItem(item, supermarkets) {
 
     riquadroAi.innerHTML = '';
     if (risultato.nome_prodotto_suggerito) {
+      inputArticolo.value = risultato.nome_prodotto_suggerito;
+      const formatoStimato = estraiFormatoDaTesto(risultato.nome_prodotto_suggerito);
+      if (formatoStimato) inputFormato.value = formatoStimato;
+
       const riga = document.createElement('p');
       const etichetta = document.createElement('strong');
       etichetta.textContent = 'Nome prodotto letto dall’AI: ';
@@ -254,7 +296,7 @@ function renderCodaFotoItem(item, supermarkets) {
     }
     const nota = document.createElement('p');
     nota.className = 'subtitle';
-    nota.textContent = 'Controlla e correggi i campi sopra prima di caricare — il nome prodotto è solo un suggerimento, non viene salvato.';
+    nota.textContent = 'Controlla e correggi i campi sopra prima di caricare.';
     riquadroAi.appendChild(nota);
     riquadroAi.hidden = false;
   });
@@ -268,10 +310,26 @@ function renderCodaFotoItem(item, supermarkets) {
     }
 
     btnCarica.disabled = true;
+
+    // Classificazione facoltativa (D-034): trova-o-crea, stesso esito
+    // di compilare a mano le colonne del Catalogo qui sopra. Un
+    // articolo esiste autonomamente (DOMAIN_MODEL.md): l'associazione
+    // al meta-articolo si tenta solo se entrambi sono stati risolti.
+    const metaName = inputMetaArticolo.value.trim();
+    const articleName = inputArticolo.value.trim();
+    const formatName = inputFormato.value.trim();
+
+    const metaArticleId = metaName ? await findOrCreateMetaArticle(metaName) : null;
+    const articleId = articleName ? await findOrCreateArticle(articleName) : null;
+    if (metaArticleId && articleId) {
+      await ensureAssociation(metaArticleId, articleId);
+    }
+    const formatId = articleId && formatName ? await findOrCreateFormat(articleId, formatName) : null;
+
     const priceObservationId = await createPriceObservation({
       supermarketId,
-      articleId: null,
-      formatId: null,
+      articleId,
+      formatId,
       packagePrice: Number(price),
       normalizedPrice: inputPrezzoUnita.value ? Number(inputPrezzoUnita.value) : null,
       normalizedUnit: inputUnita.value.trim() || null,
@@ -294,7 +352,7 @@ function renderCodaFotoItem(item, supermarkets) {
     await removePendingPhoto(item.id);
     await renderCodaFoto();
     await refreshRilevazioni();
-    await browser.refreshPrices();
+    await browser.refreshAll();
   });
 
   const btnElimina = creaBottoneAzione('Elimina', async () => {
@@ -311,9 +369,17 @@ function renderCodaFotoItem(item, supermarkets) {
   rigaNormalizzato.className = 'coda-foto-form';
   rigaNormalizzato.append(inputPrezzoUnita, inputUnita);
 
+  const etichettaClassificazione = document.createElement('p');
+  etichettaClassificazione.className = 'subtitle';
+  etichettaClassificazione.textContent = 'Classificazione (opzionale) — vuoto = resta non identificata (D-005).';
+
+  const rigaClassificazione = document.createElement('div');
+  rigaClassificazione.className = 'coda-foto-form';
+  rigaClassificazione.append(inputMetaArticolo, inputArticolo, inputFormato);
+
   const corpo = document.createElement('div');
   corpo.className = 'coda-foto-corpo';
-  corpo.append(meta, form, rigaNormalizzato, riquadroAi);
+  corpo.append(meta, form, rigaNormalizzato, etichettaClassificazione, rigaClassificazione, riquadroAi);
 
   card.append(img, corpo);
   return card;
@@ -336,6 +402,33 @@ async function renderCodaFoto() {
   }
 
   const supermarkets = await fetchSupermarkets();
+
+  // Datalist condivise per l'autocompletamento di meta-articolo/
+  // articolo nella classificazione (D-034): un elenco solo, non uno
+  // per foto — referenziato via attributo `list` dagli input delle
+  // card. Si rigenerano a ogni render, quindi restano aggiornate dopo
+  // ogni "Carica" che ne crea di nuovi.
+  const metaArticlesAll = await fetchMetaArticles();
+  const articlesAll = await fetchArticles();
+
+  const datalistMeta = document.createElement('datalist');
+  datalistMeta.id = 'coda-foto-datalist-meta';
+  for (const m of metaArticlesAll) {
+    const option = document.createElement('option');
+    option.value = m.name;
+    datalistMeta.appendChild(option);
+  }
+
+  const datalistArticoli = document.createElement('datalist');
+  datalistArticoli.id = 'coda-foto-datalist-articoli';
+  for (const a of articlesAll) {
+    const option = document.createElement('option');
+    option.value = a.name;
+    datalistArticoli.appendChild(option);
+  }
+
+  codaFotoList.append(datalistMeta, datalistArticoli);
+
   for (const item of items) {
     codaFotoList.appendChild(renderCodaFotoItem(item, supermarkets));
   }

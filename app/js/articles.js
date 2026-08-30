@@ -68,6 +68,35 @@ export async function createArticle(name) {
   return data.id;
 }
 
+// Fase 4 (classificazione al momento del caricamento foto, D-030):
+// stesso pattern di findOrCreateMetaArticle — un duplicato (case
+// insensitive) viene riusato silenziosamente, non bloccato come in
+// createArticle (lì l'utente del Catalogo si aspetta che "crea" crei
+// qualcosa di nuovo, qui invece l'AI/l'utente potrebbe riscrivere un
+// nome già esistente in un modo leggermente diverso).
+export async function findOrCreateArticle(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('articles')
+    .select('id')
+    .ilike('name', trimmed)
+    .limit(1);
+
+  if (fetchError) {
+    alert(`Errore ricerca articolo: ${fetchError.message}`);
+    console.error(fetchError);
+    return null;
+  }
+
+  if (existing && existing.length > 0) {
+    return existing[0].id;
+  }
+
+  return createArticle(trimmed);
+}
+
 export async function updateArticle(id, name) {
   const trimmed = name.trim();
   if (!trimmed) return false;

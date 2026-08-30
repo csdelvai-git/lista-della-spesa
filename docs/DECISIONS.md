@@ -514,3 +514,39 @@ Implementazione: `supabase/functions/analizza-cartellino/index.ts`
 del secret e della function non automatizzabile da Claude Code (serve
 login interattivo e la chiave personale) — passi in
 `docs/deploy_analizza_cartellino.md`.
+
+### D-034 --- Classificazione facoltativa al caricamento foto (evoluzione di D-030)
+
+Dal primo giro di prove con foto reali (D-033): senza vedere subito a
+quale meta-articolo/articolo/formato finisce una rilevazione, l'utente
+deve poi tornare nella vista a colonne per specializzarla — scomodo con
+più foto. D-030 diceva "nessuna classificazione qui": questa decisione
+la rende invece **possibile, non obbligatoria**, sulla stessa card
+della coda foto.
+
+**Come funziona**: tre campi di testo (meta-articolo, articolo,
+formato) con autocompletamento sui nomi già esistenti nel catalogo;
+"Analizza (AI)" pre-riempie articolo (dal nome letto sul cartellino) e
+prova a stimare il formato con un'estrazione testuale grezza (es.
+"500 g" da "MORTADELLA 500G") — solo un punto di partenza, non un
+parser affidabile. Tutti e tre restano editabili, e possono essere
+lasciati vuoti: in quel caso "Carica" si comporta esattamente come
+prima (rilevazione non identificata, D-005 intatto).
+
+**Trova-o-crea, non un flusso nuovo**: se compilati, "Carica" usa lo
+stesso pattern già in uso in Lista (`findOrCreateMetaArticle`), esteso
+ad articolo (`findOrCreateArticle`) e formato (`findOrCreateFormat`,
+scoped al singolo articolo, 1:N) — un nome che corrisponde a un
+elemento esistente (case insensitive) lo riusa, altrimenti lo crea.
+L'associazione N:M meta-articolo↔articolo viene garantita
+(`ensureAssociation`, idempotente) solo se entrambi sono stati
+risolti — un articolo esiste comunque autonomamente
+(DOMAIN_MODEL.md), coerente con l'uso già esistente in Lista/Catalogo.
+Nessuna nuova colonna su `price_observations`: la rilevazione ottiene
+direttamente `article_id`/`format_id` veri, non un campo AI separato
+da rivedere poi — è "come se avessi compilato a mano le colonne
+sopra".
+
+Non ancora affrontato: nessuna azione per specializzare in un secondo
+momento una rilevazione lasciata non classificata (resta un limite
+noto, non un regresso — prima non esisteva comunque).

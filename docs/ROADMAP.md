@@ -212,8 +212,12 @@ prezzo/unità normalizzato (D-007, colonna già esistente ma non
 ancora collegata) ora editabile e salvato con "Carica", pre-riempito
 dall'AI se leggibile; - riquadro di revisione AI più leggibile (nome
 prodotto suggerito ben separato, nota esplicita che va verificato
-prima di caricare — resta solo informativo, nessun campo lo salva,
-D-005).
+prima di caricare); - **classificazione facoltativa al caricamento**
+(D-034): tre campi editabili (meta-articolo/articolo/formato) con
+autocompletamento sul catalogo, "Analizza (AI)" pre-riempie articolo e
+prova a stimare il formato dal testo — "Carica" trova-o-crea
+esattamente come compilare a mano le colonne sopra, restando
+facoltativo (vuoto = non identificata, D-005 invariato).
 
 Rimandato: - il resto della Fase 4 (suggerimenti, gestione
 incertezza su più campioni); - la modalità "barcode + scontrino"

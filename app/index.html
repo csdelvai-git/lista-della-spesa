@@ -89,9 +89,11 @@
       Cattura differita (Fase 3.2, D-030) — scatta foto dei cartellini
       al supermercato, anche senza connessione: restano in coda su
       questo dispositivo. Completa supermercato e prezzo quando vuoi,
-      anche in un secondo momento, poi carica. Nessuna classificazione
-      articolo/formato qui: la rilevazione resta non identificata
-      finché non la specializzi altrove (D-005).
+      anche in un secondo momento, poi carica. "Analizza (AI)" propone
+      prezzo/supermercato/classificazione da confermare o correggere
+      (D-006); la classificazione meta-articolo/articolo/formato resta
+      facoltativa — se la lasci vuota, la rilevazione resta non
+      identificata come prima (D-005, D-034).
     </p>
     <label class="pulsante-foto">
       <input
@@ -134,9 +136,11 @@
     <p class="subtitle">
       Rilevazioni da entrambi i flussi: inserimento manuale top-down
       (seleziona un formato qui sopra) e cattura foto bottom-up
-      (sezione "Cartellini da caricare" più sopra, senza
-      classificazione articolo/formato). Niente OCR o revisione qui
-      ancora (Fase 3.2, D-030, modalità 2).
+      (sezione "Cartellini da caricare" più sopra) — quest'ultima
+      classificata solo se hai compilato meta-articolo/articolo/
+      formato al momento del caricamento, altrimenti resta "(non
+      classificato)": non c'è ancora un'azione per specializzarla in
+      un secondo momento da qui.
     </p>
     <div id="rilevazioni-list"></div>
   </details>
