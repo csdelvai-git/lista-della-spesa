@@ -380,10 +380,24 @@ function renderPoolRow(item) {
 
   const row = document.createElement('div');
   row.className = 'pool-row';
+  const info = document.createElement('div');
+  info.style.flex = '1';
+  info.style.minWidth = '0';
   const name = document.createElement('span');
   name.className = 'r-name';
   name.textContent = item.meta_articles?.name ?? '(senza nome)';
-  row.appendChild(name);
+  info.appendChild(name);
+  // Senza questo, istanze diverse dello stesso meta-articolo (es.
+  // "Acqua Gasata" bare + "Acqua Gasata → Guizza") sembrano doppioni
+  // identici — mostra lo stesso dettaglio del desktop.
+  const dettagli = [item.articles?.name, item.formats?.name].filter(Boolean);
+  if (dettagli.length > 0) {
+    const sub = document.createElement('span');
+    sub.className = 'item-sub';
+    sub.textContent = dettagli.join(' · ');
+    info.appendChild(sub);
+  }
+  row.appendChild(info);
   attachSwipe(row);
   row.addEventListener('click', async () => {
     const ok = await updateListItem(item.id, { status: 'NEL_CARRELLO' });
