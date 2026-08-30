@@ -490,8 +490,11 @@ Segue la ricerca in `docs/analisi_ocr_visione_cartellini.md`.
 tra provider è irrilevante ai volumi previsti (centesimi/mese); il
 criterio è restare in un solo ecosistema, già usato per lo sviluppo.
 Foto inviata direttamente al modello multimodale (niente OCR + parsing
-separato). Modello: Claude Haiku 4.5, sufficiente per un'estrazione
-campi semplice.
+separato). Modello: **Claude Sonnet 5** (rivisto da Haiku 4.5 dopo un
+confronto A/B su 8 foto reali di cartellini —
+`test-images/scontrini/confronto-modelli-ocr.md`: Sonnet pareggia o
+batte Haiku su tutte le 8, mai peggio, spesso legge un prezzo/kg che
+Haiku perde del tutto). Costo comunque trascurabile ai volumi previsti.
 
 **Architettura**: la chiave API non può stare nel frontend statico
 (GitHub Pages). Si aggiunge una Supabase Edge Function

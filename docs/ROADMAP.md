@@ -238,6 +238,18 @@ Function che legga il saldo (Admin API Anthropic, chiave separata da
 quella usata per l'analisi) — non implementata ora, idea da
 riprendere insieme alla UI mobile.
 
+Domanda aperta emersa dal confronto Haiku/Sonnet (non affrontata ora):
+i **prodotti da bilancia** (banco frigo/gastronomia — niente cartellino
+di scaffale, ogni pezzo pesato a sé con la sua etichetta) non hanno un
+"formato" ripetibile, dato che sullo scaffale/frigo non esistono due
+pezzi con lo stesso peso esatto. Il prezzo al kg/litro ha senso e va
+comunque salvato come oggi; il prezzo confezione invece descriverebbe
+un formato che di fatto è unico per quella singola pesata, non
+riutilizzabile per la prossima osservazione dello stesso articolo. Da
+ridiscutere quando si affronta questo caso, non necessariamente
+un'eccezione al modello (D-003: formato resta la variante commerciale
+dell'articolo) ma quantomeno a come lo popola l'acquisizione da foto.
+
 ## Fase 5 --- Storico prezzi
 
 Implementazione: - storico; - confronto prezzi; - prezzo normalizzato.

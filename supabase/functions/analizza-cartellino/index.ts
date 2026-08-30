@@ -22,7 +22,12 @@ const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
 // dell'organizzazione: non è un segreto (a differenza della chiave), va
 // bene hardcoded — cambia solo se in futuro si usa un workspace diverso.
 const ANTHROPIC_WORKSPACE_ID = 'wrkspc_01VXiSLchuVyS3Ag8GNSkCQo';
-const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
+// Sonnet 5 di default (non Haiku): confronto A/B su 8 foto reali di
+// cartellini (test-images/scontrini/confronto-modelli-ocr.md) —
+// Sonnet pareggia o batte Haiku su tutte, mai peggio, spesso legge un
+// prezzo/kg che Haiku perde. Costo comunque trascurabile ai volumi
+// del progetto (docs/analisi_ocr_visione_cartellini.md).
+const DEFAULT_MODEL = 'claude-sonnet-5';
 // Solo per confronto/test (non esposto nella UI dell'app): un `model`
 // esplicito nel body viene accettato solo se in questa lista, per non
 // lasciar passare un nome di modello arbitrario dal client.
