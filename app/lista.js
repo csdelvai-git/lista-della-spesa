@@ -47,6 +47,8 @@ const riepilogoSelezione = document.getElementById('riepilogo-selezione');
 const btnAggiungiVoce = document.getElementById('btn-aggiungi-voce');
 const checkboxMostraTutti = document.getElementById('checkbox-mostra-tutti');
 const checkboxMostraCancellati = document.getElementById('checkbox-mostra-cancellati');
+const cercaMetaListaEl = document.getElementById('cerca-meta-lista');
+const chipRowSupermercatoEl = document.getElementById('chip-row-supermercato');
 
 const listaCarrelloEl = document.getElementById('lista-carrello');
 const listaAcquistatoEl = document.getElementById('lista-acquistato');
@@ -81,6 +83,15 @@ let presentMetaArticleIds = new Set();
 // tutti" si torna a vedere anche i già attivi, riselezionabili.
 let mostraTutti = false;
 
+// Ricerca testuale sulla colonna Meta-articoli (D-037): stesso
+// bisogno della barra di ricerca nel pool mobile — utile quando il
+// catalogo cresce e scorrere non basta più.
+let ricercaMeta = '';
+
+// Filtro "appiattisci su un supermercato" per "Nel carrello" (D-037,
+// stesso meccanismo del mockup mobile originale): null = "Tutti".
+let flattenShopId = null;
+
 let allItems = [];
 
 // Densità di visualizzazione (D-029): Estesa (card, solo scelta
@@ -106,8 +117,15 @@ const browser = createColumnBrowser({
   priceColumnEl: colonnaPrezziLista,
   selectablePrices: true,
   onSelectionChange: handleSelectionChange,
-  metaFilter: (item) => mostraTutti || !presentMetaArticleIds.has(item.id),
+  metaFilter: (item) =>
+    (mostraTutti || !presentMetaArticleIds.has(item.id)) &&
+    (!ricercaMeta || item.name.toLowerCase().includes(ricercaMeta)),
   metaLabelSuffix: (item) => (presentMetaArticleIds.has(item.id) ? ' (già nel carrello)' : ''),
+});
+
+cercaMetaListaEl.addEventListener('input', async () => {
+  ricercaMeta = cercaMetaListaEl.value.trim().toLowerCase();
+  await browser.refreshMeta();
 });
 
 checkboxMostraTutti.addEventListener('change', async () => {
@@ -343,6 +361,82 @@ function renderItemCancellato(item) {
   return div;
 }
 
+// Un gruppo per supermercato preferito (D-037, stesso raggruppamento
+// del mobile): l'intestazione Media resta per gruppo, non una sola
+// per tutta la sezione, perché ogni gruppo è la sua mini-tabella.
+function renderGruppoPerSupermercato(nome, items) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'gruppo-supermercato';
+  const titolo = document.createElement('h3');
+  titolo.className = 'gruppo-supermercato-titolo';
+  titolo.textContent = `${nome} (${items.length})`;
+  wrapper.appendChild(titolo);
+  if (densita === 'media') wrapper.appendChild(creaRigaIntestazioneMedia());
+  for (const item of items) wrapper.appendChild(renderItem(item));
+  return wrapper;
+}
+
+function renderCarrelloRaggruppato(containerEl, items) {
+  containerEl.innerHTML = '';
+  if (items.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'colonna-vuota';
+    empty.textContent = 'Nessuna voce.';
+    containerEl.appendChild(empty);
+    return;
+  }
+  const gruppi = new Map();
+  for (const item of items) {
+    const nome = item.supermarkets?.name ?? '(nessuna preferenza)';
+    if (!gruppi.has(nome)) gruppi.set(nome, []);
+    gruppi.get(nome).push(item);
+  }
+  for (const [nome, groupItems] of gruppi) {
+    containerEl.appendChild(renderGruppoPerSupermercato(nome, groupItems));
+  }
+}
+
+// Stessa checkbox/chip del pool mobile ("appiattisci su un
+// supermercato"): utile quando sei al supermercato X e vuoi vedere
+// solo quello, non l'intera lista.
+function renderChipRowSupermercato(carrelloItems) {
+  const negozi = new Map();
+  for (const item of carrelloItems) {
+    if (item.preferred_supermarket_id) {
+      negozi.set(item.preferred_supermarket_id, item.supermarkets?.name ?? '?');
+    }
+  }
+  if (negozi.size === 0) {
+    chipRowSupermercatoEl.hidden = true;
+    flattenShopId = null;
+    return;
+  }
+  chipRowSupermercatoEl.hidden = false;
+  chipRowSupermercatoEl.innerHTML = '';
+
+  const tutti = document.createElement('button');
+  tutti.type = 'button';
+  tutti.textContent = 'Tutti';
+  tutti.setAttribute('aria-pressed', String(flattenShopId === null));
+  tutti.addEventListener('click', () => {
+    flattenShopId = null;
+    renderLista();
+  });
+  chipRowSupermercatoEl.appendChild(tutti);
+
+  for (const [id, nome] of negozi) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = nome;
+    btn.setAttribute('aria-pressed', String(flattenShopId === id));
+    btn.addEventListener('click', () => {
+      flattenShopId = id;
+      renderLista();
+    });
+    chipRowSupermercatoEl.appendChild(btn);
+  }
+}
+
 function renderListaSezione(containerEl, items, renderer, conHeader) {
   containerEl.innerHTML = '';
   if (densita === 'media' && conHeader && items.length > 0) {
@@ -359,10 +453,15 @@ function renderListaSezione(containerEl, items, renderer, conHeader) {
 }
 
 function renderLista() {
-  const carrello = allItems.filter((i) => i.status === 'NEL_CARRELLO');
+  let carrello = allItems.filter((i) => i.status === 'NEL_CARRELLO');
   const acquistato = allItems.filter((i) => i.status === 'ACQUISTATO');
 
-  renderListaSezione(listaCarrelloEl, carrello, renderItem, true);
+  renderChipRowSupermercato(carrello);
+  if (flattenShopId) {
+    carrello = carrello.filter((i) => i.preferred_supermarket_id === flattenShopId);
+  }
+
+  renderCarrelloRaggruppato(listaCarrelloEl, carrello);
   renderListaSezione(listaAcquistatoEl, acquistato, renderItem, true);
 
   if (mostraCancellati) {

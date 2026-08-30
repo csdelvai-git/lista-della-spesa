@@ -315,6 +315,15 @@ correttamente (D-022). Notato anche un vero doppione di dati
 (`Ananas`, due voci identiche da prima di questi controlli): non un
 bug applicativo, solo dato vecchio da ripulire a mano.
 
+Audit di parità desktop/mobile richiesto dall'utente (D-037): oltre a
+due bug veri corretti (pool "Crea" mobile non attivava subito la
+voce; mancavano Quantità/Nota sulle voci mobile), emerse tre
+differenze di interazione. Decisione dell'utente: "Elimina dal
+catalogo" resta mobile-only (paradigmi diversi, nessuna modifica);
+ricerca testuale nel pool e raggruppamento "Nel carrello" per
+supermercato portati anche sul desktop, per analogia completa — vedi
+D-037 in DECISIONS.md per l'implementazione.
+
 ## Fase 4 --- OCR e AI
 
 Implementazione: - estrazione dati (parzialmente anticipata in 3.2,

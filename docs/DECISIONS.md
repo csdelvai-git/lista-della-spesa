@@ -726,3 +726,36 @@ D-029); ricerca testuale nel pool (solo mobile — la colonna
 Meta-articoli desktop è solo scorrevole); "Elimina dal catalogo"
 raggiungibile dalla Lista (solo mobile, che non ha un tab Catalogo
 separato — sul desktop quell'azione vive nel tab Catalogo).
+
+**Decisione dell'utente sulle tre differenze**: "Elimina dal
+catalogo" resta mobile-only — i paradigmi sono diversi (mobile non
+ha un tab Catalogo separato), nessuna modifica necessaria. Le altre
+due vanno invece portate anche sul desktop, per analogia completa:
+
+- *Ricerca testuale sulla colonna Meta-articoli* — aggiunto un campo
+  `<input>` sopra la colonna in `app/lista.html`
+  (`#cerca-meta-lista`), collegato in `app/lista.js` come filtro
+  aggiuntivo nel `metaFilter` già passato a `createColumnBrowser`
+  (`app/js/columnBrowser.js`) — nessuna modifica al componente
+  condiviso, solo composizione del predicato esistente con il testo
+  cercato (case-insensitive, su `item.name`).
+- *Raggruppamento "Nel carrello" per supermercato* — aggiunta una
+  chip-row ("Tutti" + una chip per ogni supermercato con almeno una
+  voce nel carrello) sopra la sezione, che riusa il componente
+  `.selettore-pillole` già esistente (stessa semantica
+  `aria-pressed` dello switch di densità in D-029) invece di
+  introdurre una classe `.chip` come su mobile. Selezionando un
+  supermercato la sezione "Nel carrello" si "appiattisce" mostrando
+  solo le voci con quella preferenza, raggruppate sotto un titolo per
+  supermercato quando "Tutti" è selezionato. "Acquistato" e
+  "Cancellato" restano liste piatte, invariate.
+
+Implementazione: `app/lista.html` (input di ricerca, contenitore
+`#chip-row-supermercato`), `app/lista.js`
+(`renderGruppoPerSupermercato`, `renderCarrelloRaggruppato`,
+`renderChipRowSupermercato`, filtro testo in `metaFilter`),
+`app/style.css` (`.cerca-colonna`, `.chip-row-supermercato`,
+`.gruppo-supermercato`, `.gruppo-supermercato-titolo`). Verificato
+manualmente con dati reali (voce "Birra" con preferenza
+supermercato impostata e rimossa): ricerca e raggruppamento si
+comportano in modo identico alla controparte mobile già esistente.

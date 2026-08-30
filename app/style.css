@@ -292,6 +292,39 @@ ul {
   overflow-y: auto;
 }
 
+.cerca-colonna {
+  width: 100%;
+  margin-bottom: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* Chip "appiattisci su un supermercato" (D-037): stesso componente
+   pillole di sempre, ma può contenere più voci dei 3 fissi della
+   densità — scorre in orizzontale invece di andare a capo. */
+.chip-row-supermercato {
+  max-width: 100%;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  margin-bottom: 0.75rem;
+}
+
+.chip-row-supermercato button {
+  flex-shrink: 0;
+}
+
+.gruppo-supermercato {
+  margin-bottom: 1rem;
+}
+
+.gruppo-supermercato-titolo {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+  margin: 0 0 0.4rem;
+}
+
 .colonna-corpo ul {
   display: flex;
   flex-direction: column;
