@@ -18,10 +18,11 @@
 
   <h1 id="nome-lista">Lista della spesa</h1>
   <p class="subtitle">
-    Stesso ciclo di vita del canale mobile (D-032): Da acquistare
-    (pianificazione, nascosta dietro "Pianificazione" qui sotto) →
-    Nel carrello → Acquistato — un click cambia stato in entrambe le
-    direzioni, da qualunque canale.
+    Sfoglia le colonne qui sotto e scegli il livello di dettaglio
+    (meta-articolo, o fino al formato) — "Aggiungi alla lista" la
+    mette subito in "Nel carrello". Stesso ciclo di vita del canale
+    mobile (D-032/D-035): Nel carrello ↔ Acquistato, un click cambia
+    stato in entrambe le direzioni, da qualunque canale.
   </p>
 
   <section>
@@ -41,11 +42,12 @@
     <h2>Aggiungi alla lista</h2>
     <div class="colonne">
       <div class="colonna">
-        <h3>Meta-articoli non ancora in lista</h3>
+        <h3>Meta-articoli non ancora nel carrello</h3>
         <div id="colonna-meta-lista" class="colonna-corpo"></div>
         <label class="colonna-toggle">
           <input type="checkbox" id="checkbox-mostra-tutti">
-          Mostra tutti (anche già in lista)
+          Mostra tutti (anche già nel carrello — per una seconda
+          istanza diversa, es. Banane gialle + Banane rosse)
         </label>
       </div>
       <div class="colonna">
@@ -65,17 +67,6 @@
     <div id="riepilogo-selezione" class="barra-azioni"></div>
     <button type="button" id="btn-aggiungi-voce" disabled>Aggiungi alla lista</button>
   </section>
-
-  <details class="pannello" id="pool-pannello" open>
-    <summary>Pianificazione <span id="pool-contatore" class="contatore"></span></summary>
-    <p class="subtitle">
-      Le voci create qui sopra nascono qui (Da acquistare) — anche una
-      voce nuova, sempre: un solo meccanismo, coerente con mobile
-      (D-032). "Attiva" la fa comparire in "Nel carrello" qui sotto.
-    </p>
-    <input type="text" id="pool-search" placeholder="Cerca nella pianificazione…">
-    <ul id="pool-list"></ul>
-  </details>
 
   <div class="lista-toolbar">
     <label class="colonna-toggle">

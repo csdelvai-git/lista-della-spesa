@@ -47,18 +47,24 @@ LIBERO/PREFERITO/OBBLIGATORIO; - stati DA_ACQUISTARE/NEL_CARRELLO/
 ACQUISTATO/CANCELLATO con transizione libera; - interfaccia in `app/`
 verificata end-to-end.
 
-Completato (D-035, dopo il primo uso reale del canale mobile): UI
-desktop riscritta per lo **stesso ciclo di vita del mobile**, non più
-un elenco unico con select libera a 4 stati — pannello "Pianificazione"
-sempre visibile (DA_ACQUISTARE: cerca, crea, attiva, elimina dal
-catalogo), due sezioni Nel carrello/Acquistato sempre entrambe
-visibili con un solo controllo che le scambia in entrambe le
-direzioni, due pulizie bulk (Pulisci acquistati/tutta la lista). Tolti
-vincolo e colonna unità (non si traducevano in azioni concrete nel
-flusso al supermercato); aggiunto "Elimina" esplicito per la
-dismissione vera (D-008), prima raggiungibile solo dalla select
-tolta. Specializzazione progressiva portata anche su mobile
-(`app/mobile.js`), stesso meccanismo del desktop.
+Completato (D-035, dopo il primo uso reale del canale mobile; corretto
+da D-036): UI desktop riscritta per lo **stesso ciclo di vita del
+mobile**, non più un elenco unico con select libera a 4 stati — due
+sezioni Nel carrello/Acquistato sempre entrambe visibili con un solo
+controllo che le scambia in entrambe le direzioni, due pulizie bulk
+(Pulisci acquistati/tutta la lista). Il browser a colonne già
+esistente resta l'unico punto d'ingresso (niente pannello
+"Pianificazione" separato, D-036: era un doppione della stessa
+funzione) — filtra sui meta-articoli non ancora **attivi** e
+"Aggiungi alla lista" riattiva una voce dormiente con la stessa
+combinazione meta/articolo/formato invece di duplicarla, restando
+comunque possibile avere più istanze diverse dello stesso
+meta-articolo (es. Banane gialle + Banane rosse). Tolti vincolo e
+colonna unità (non si traducevano in azioni concrete nel flusso al
+supermercato); aggiunto "Elimina" esplicito per la dismissione vera
+(D-008), prima raggiungibile solo dalla select tolta. Specializzazione
+progressiva portata anche su mobile (`app/mobile.js`), stesso
+meccanismo del desktop.
 
 Da completare: - eventuali affinamenti UX.
 

@@ -3,24 +3,35 @@ import {
   fetchListItems,
   createListItem,
   updateListItem,
-  deleteListItem,
 } from './js/shoppingListItems.js';
-import { findOrCreateMetaArticle, deleteMetaArticle } from './js/metaArticles.js';
+import { findOrCreateMetaArticle } from './js/metaArticles.js';
 import { fetchArticlesForMetaArticle } from './js/articles.js';
 import { fetchFormatsForArticle } from './js/formats.js';
 import { createColumnBrowser } from './js/columnBrowser.js';
 
-// Stesso ciclo di vita del canale mobile (D-032, evoluzione della UI
-// desktop dopo il primo giro di prove): DA_ACQUISTARE nasce sempre
-// così (nessuna eccezione, "un solo meccanismo") e resta nascosto
-// dietro il pannello "Pianificazione" — non più una select di stato
-// libera. NEL_CARRELLO/ACQUISTATO sono sempre entrambi visibili, un
-// click li scambia in entrambe le direzioni, anche da qui (a
-// differenza di mobile non c'è un vincolo "devi essere al
-// supermercato": qui la coerenza tra canali conta più di quella
-// sfumatura). CANCELLATO (D-008, dismissione vera) si raggiunge solo
-// con "Elimina" esplicito — niente più select da cui capitarci per
-// sbaglio.
+// Stesso ciclo di vita del canale mobile (D-032/D-035): NEL_CARRELLO/
+// ACQUISTATO sono sempre entrambi visibili, un click li scambia in
+// entrambe le direzioni, anche da qui (a differenza di mobile non c'è
+// un vincolo "devi essere al supermercato": qui la coerenza tra
+// canali conta più di quella sfumatura). CANCELLATO (D-008,
+// dismissione vera) si raggiunge solo con "Elimina" esplicito.
+//
+// Niente pannello "Pianificazione" separato (tolto dopo il primo
+// giro di prove, D-035 addendum): il browser a colonne qui sotto è
+// l'unico punto d'ingresso. "Aggiungi alla lista" mette la voce
+// direttamente in Nel carrello — riattivando una voce dormiente
+// (DA_ACQUISTARE) se la combinazione meta/articolo/formato scelta
+// coincide esattamente con una già esistente (v. btnAggiungiVoce),
+// altrimenti creandone una nuova. Un meta-articolo può avere più
+// istanze attive contemporaneamente (es. Banane gialle + Banane
+// rosse): la checkbox "Mostra tutti" resta per quel caso, invariata.
+// DA_ACQUISTARE resta nel database (ci "atterrano" le voci con le
+// pulizie bulk) ma non ha più una vista dedicata: il meta-articolo
+// dormiente ricompare da solo nella colonna, senza bisogno di quella
+// checkbox, perché "già presente" ora significa solo "già attivo"
+// (NEL_CARRELLO/ACQUISTATO), non più "qualunque stato non cancellato".
+// L'eliminazione reale di un meta-articolo dal catalogo resta nel tab
+// Catalogo, non qui — è già lì il posto giusto.
 
 const nomeListaEl = document.getElementById('nome-lista');
 
@@ -35,10 +46,6 @@ const riepilogoSelezione = document.getElementById('riepilogo-selezione');
 const btnAggiungiVoce = document.getElementById('btn-aggiungi-voce');
 const checkboxMostraTutti = document.getElementById('checkbox-mostra-tutti');
 const checkboxMostraCancellati = document.getElementById('checkbox-mostra-cancellati');
-
-const poolSearchEl = document.getElementById('pool-search');
-const poolListEl = document.getElementById('pool-list');
-const poolContatoreEl = document.getElementById('pool-contatore');
 
 const listaCarrelloEl = document.getElementById('lista-carrello');
 const listaAcquistatoEl = document.getElementById('lista-acquistato');
@@ -60,16 +67,17 @@ let currentListId = null;
 // in fase di render.
 let mostraCancellati = false;
 
-// Meta-articoli già presenti in lista (stato diverso da CANCELLATO),
-// esclusi dalla colonna "Meta-articoli" per evitare doppioni
-// accidentali. Un meta-articolo cancellato ricompare come
-// selezionabile. Il caso raro "voglio due varianti diverse dello
-// stesso generico" resta volutamente fuori scope per ora.
+// Meta-articoli già ATTIVI (NEL_CARRELLO o ACQUISTATO — non più
+// "qualunque stato non cancellato", D-035 addendum), esclusi dalla
+// colonna "Meta-articoli" per evitare doppioni accidentali. Un
+// meta-articolo solo dormiente (DA_ACQUISTARE) o cancellato ricompare
+// come selezionabile.
 let presentMetaArticleIds = new Set();
 
-// Override esplicito: a volte serve davvero più di una voce per lo
-// stesso meta-articolo (es. due marche diverse) — con la checkbox
-// "Mostra tutti" si torna a vedere anche i già presenti, riaggiungibili.
+// Override esplicito per il caso raro "voglio una seconda istanza
+// diversa dello stesso meta-articolo" (es. Banane gialle + Banane
+// rosse, Ichnusa 3x33cl + Ichnusa 50cl): con la checkbox "Mostra
+// tutti" si torna a vedere anche i già attivi, riselezionabili.
 let mostraTutti = false;
 
 let allItems = [];
@@ -98,7 +106,7 @@ const browser = createColumnBrowser({
   selectablePrices: true,
   onSelectionChange: handleSelectionChange,
   metaFilter: (item) => mostraTutti || !presentMetaArticleIds.has(item.id),
-  metaLabelSuffix: (item) => (presentMetaArticleIds.has(item.id) ? ' (già in lista)' : ''),
+  metaLabelSuffix: (item) => (presentMetaArticleIds.has(item.id) ? ' (già nel carrello)' : ''),
 });
 
 checkboxMostraTutti.addEventListener('change', async () => {
@@ -331,62 +339,6 @@ function renderListaSezione(containerEl, items, renderer, conHeader) {
   for (const item of items) containerEl.appendChild(renderer(item));
 }
 
-function renderPoolRow(item) {
-  const li = document.createElement('li');
-  li.className = 'pool-row';
-
-  const name = document.createElement('span');
-  name.className = 'pool-row-name';
-  name.textContent = creaTitoloTesto(item);
-  li.appendChild(name);
-
-  const btnAttiva = document.createElement('button');
-  btnAttiva.type = 'button';
-  btnAttiva.textContent = 'Attiva';
-  btnAttiva.addEventListener('click', async () => {
-    const ok = await updateListItem(item.id, { status: 'NEL_CARRELLO' });
-    if (ok) await refreshAll();
-  });
-
-  const btnElimina = document.createElement('button');
-  btnElimina.type = 'button';
-  btnElimina.textContent = 'Elimina dal catalogo';
-  btnElimina.addEventListener('click', async () => {
-    const nome = item.meta_articles?.name ?? '(senza nome)';
-    if (!confirm(`Eliminare "${nome}" dal catalogo? Non si può annullare.`)) return;
-    // Prima la voce dormiente (altrimenti il vincolo la blocca sempre),
-    // poi il meta-articolo — resta bloccato solo se una voce attiva
-    // altrove lo referenzia ancora (D-022).
-    await deleteListItem(item.id);
-    await deleteMetaArticle(item.meta_articles.id);
-    await refreshAll();
-  });
-
-  li.append(btnAttiva, btnElimina);
-  return li;
-}
-
-function renderPool() {
-  const daAcquistare = allItems.filter((i) => i.status === 'DA_ACQUISTARE');
-  const query = poolSearchEl.value.trim().toLowerCase();
-  const filtrati = query
-    ? daAcquistare.filter((i) => (i.meta_articles?.name ?? '').toLowerCase().includes(query))
-    : daAcquistare;
-
-  poolListEl.innerHTML = '';
-  if (filtrati.length === 0) {
-    const li = document.createElement('li');
-    li.className = 'colonna-vuota';
-    li.textContent = 'Nessuna voce in pianificazione.';
-    poolListEl.appendChild(li);
-  } else {
-    for (const item of filtrati) poolListEl.appendChild(renderPoolRow(item));
-  }
-  poolContatoreEl.textContent = `${daAcquistare.length}`;
-}
-
-poolSearchEl.addEventListener('input', renderPool);
-
 function renderLista() {
   const carrello = allItems.filter((i) => i.status === 'NEL_CARRELLO');
   const acquistato = allItems.filter((i) => i.status === 'ACQUISTATO');
@@ -402,8 +354,6 @@ function renderLista() {
     sezioneCancellatoEl.hidden = true;
     listaCancellatoEl.innerHTML = '';
   }
-
-  renderPool();
 }
 
 function applicaDensita(nuovaDensita, { salva = true } = {}) {
@@ -446,7 +396,9 @@ btnPulisciTutto.addEventListener('click', async () => {
 async function refreshAll() {
   allItems = await fetchListItems(currentListId);
   presentMetaArticleIds = new Set(
-    allItems.filter((item) => item.status !== 'CANCELLATO').map((item) => item.meta_articles?.id)
+    allItems
+      .filter((item) => item.status === 'NEL_CARRELLO' || item.status === 'ACQUISTATO')
+      .map((item) => item.meta_articles?.id)
   );
   // Ordine alfabetico per nome meta-articolo (v1: basta a semplificare
   // ricerca/identificazione — un ordine cronologico resta possibile in
@@ -489,11 +441,40 @@ btnAggiungiVoce.addEventListener('click', async () => {
   const selection = browser.getSelection();
   if (!selection.metaArticle) return;
 
-  const ok = await createListItem(currentListId, selection.metaArticle.id, {
-    articleId: selection.article?.id,
-    formatId: selection.format?.id,
-    preferredSupermarketId: selection.preferredSupermarket?.id,
-  });
+  const articleId = selection.article?.id ?? null;
+  const formatId = selection.format?.id ?? null;
+  const preferredSupermarketId = selection.preferredSupermarket?.id ?? null;
+
+  // Riattiva una voce dormiente con la STESSA combinazione esatta
+  // (meta+articolo+formato), invece di duplicarla — ma solo quella:
+  // una combinazione diversa per lo stesso meta-articolo (es. Banane
+  // rosse quando Banane gialle è già dormiente) resta una voce a sé,
+  // mai fusa (D-035 addendum).
+  const dormiente = allItems.find(
+    (item) =>
+      item.status === 'DA_ACQUISTARE' &&
+      item.meta_articles?.id === selection.metaArticle.id &&
+      (item.articles?.id ?? null) === articleId &&
+      (item.formats?.id ?? null) === formatId
+  );
+
+  let ok;
+  if (dormiente) {
+    ok = await updateListItem(dormiente.id, {
+      status: 'NEL_CARRELLO',
+      preferred_supermarket_id: preferredSupermarketId ?? dormiente.preferred_supermarket_id ?? null,
+    });
+  } else {
+    // Nasce DA_ACQUISTARE per default DB (un solo meccanismo, D-032)
+    // — qui la si attiva subito: un click, in "Nel carrello", senza
+    // un passaggio "Attiva" separato da vedere (D-035 addendum).
+    const nuovaId = await createListItem(currentListId, selection.metaArticle.id, {
+      articleId,
+      formatId,
+      preferredSupermarketId,
+    });
+    ok = nuovaId && (await updateListItem(nuovaId, { status: 'NEL_CARRELLO' }));
+  }
 
   if (ok) {
     await refreshAll();

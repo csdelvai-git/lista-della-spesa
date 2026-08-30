@@ -37,25 +37,34 @@ export async function fetchListItems(listId) {
   return data;
 }
 
+// Ritorna l'id della voce creata (non solo un booleano): serve a chi
+// vuole agire subito sulla riga appena nata, es. attivarla senza un
+// refetch (D-035 addendum). I chiamanti che vogliono solo sapere se è
+// andata bene possono continuare a trattare il valore come
+// truthy/falsy.
 export async function createListItem(
   listId,
   metaArticleId,
   { articleId, formatId, preferredSupermarketId } = {}
 ) {
-  const { error } = await supabase.from('shopping_list_items').insert({
-    shopping_list_id: listId,
-    meta_article_id: metaArticleId,
-    article_id: articleId ?? null,
-    format_id: formatId ?? null,
-    preferred_supermarket_id: preferredSupermarketId ?? null,
-  });
+  const { data, error } = await supabase
+    .from('shopping_list_items')
+    .insert({
+      shopping_list_id: listId,
+      meta_article_id: metaArticleId,
+      article_id: articleId ?? null,
+      format_id: formatId ?? null,
+      preferred_supermarket_id: preferredSupermarketId ?? null,
+    })
+    .select('id')
+    .single();
 
   if (error) {
     alert(`Errore aggiunta voce: ${error.message}`);
     console.error(error);
     return false;
   }
-  return true;
+  return data.id;
 }
 
 // Fase mobile (D-032): elimina la sola voce di lista (non il

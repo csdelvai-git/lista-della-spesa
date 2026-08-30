@@ -612,3 +612,45 @@ select stato/vincolo/unità); `app/mobile.js` esteso con
 Specializza/Elimina sulle voci; `app/style.css` aggiornato (griglia
 `.voce-media` a 5 colonne, nuove classi `.voce-check-label`/
 `.pool-row`).
+
+### D-036 --- Niente pannello "Pianificazione" su desktop (correzione a D-035)
+
+Il pannello "Pianificazione" di D-035 (ricerca/attiva/elimina su
+DA_ACQUISTARE, copiato dal "+" mobile) si è rivelato un giro a vuoto
+sul desktop: il browser a colonne (Meta-articoli → Articoli → Formati
+→ Prezzi, già esistente) fa già lo stesso lavoro — sfogliare il
+catalogo e scegliere il livello di dettaglio. Un secondo pannello con
+la stessa funzione era complessità ridondante, non parità utile.
+
+**Decisione**: tolto il pannello. Il browser a colonne resta l'unico
+punto d'ingresso desktop:
+
+- "Meta-articoli non ancora nel carrello" ora filtra su **attivo**
+  (NEL_CARRELLO/ACQUISTATO), non più su "qualunque stato non
+  cancellato" — un meta-articolo dormiente (DA_ACQUISTARE, da un
+  "Pulisci" precedente) ricompare da solo, senza bisogno di spuntare
+  "Mostra tutti".
+- "Aggiungi alla lista" cerca una voce dormiente con la **stessa
+  identica combinazione** meta+articolo+formato di quella appena
+  scelta: se la trova la riattiva (→ NEL_CARRELLO), altrimenti ne crea
+  una nuova (nasce comunque DA_ACQUISTARE per default DB, poi attivata
+  nello stesso click — D-032 "un solo meccanismo" resta vero alla
+  lettera, solo invisibile all'utente). Un meta-articolo con più
+  istanze attive contemporaneamente (es. Frutta→Banane gialle e
+  Frutta→Banane rosse, Birra→Ichnusa 3x33cl e Birra→Ichnusa 50cl) resta
+  possibile: il match è sulla combinazione esatta, non solo sul
+  meta-articolo, quindi istanze diverse non vengono mai fuse; "Mostra
+  tutti" resta per selezionarne una seconda deliberatamente.
+- "Elimina dal catalogo" (che stava nel pannello tolto) non serve
+  ricrearlo: esiste già nel tab Catalogo, posto più corretto per
+  un'eliminazione che riguarda l'intero catalogo, non la lista.
+
+Il mobile non cambia: il "+" resta necessario lì (nessun browser a
+colonne su schermo piccolo) — l'asimmetria nell'interazione (colonne
+su desktop, foglio di ricerca su mobile) era già prevista da D-035
+("l'interazione può differire, non la logica").
+
+Implementazione: `createListItem` (`js/shoppingListItems.js`) ritorna
+ora l'id della riga creata invece di un booleano, per poterla attivare
+subito senza un refetch — i chiamanti esistenti restano compatibili
+(un id è comunque truthy).
