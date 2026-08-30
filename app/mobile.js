@@ -360,12 +360,15 @@ document.getElementById('pulisci-tutto-btn').addEventListener('click', async () 
 const poolSheet = document.getElementById('pool-sheet');
 const poolRowsEl = document.getElementById('pool-rows');
 const poolSearchEl = document.getElementById('pool-search');
+const poolMostraTuttiEl = document.getElementById('pool-mostra-tutti');
 
 fab.addEventListener('click', () => {
   poolSheet.classList.add('open');
   poolSearchEl.value = '';
+  poolMostraTuttiEl.checked = false;
   renderPool();
 });
+poolMostraTuttiEl.addEventListener('change', renderPool);
 document.getElementById('pool-close').addEventListener('click', () => {
   poolSheet.classList.remove('open');
 });
@@ -473,12 +476,44 @@ function renderPoolGroup(istanze) {
   return container;
 }
 
+// "Mostra tutti" (stesso checkbox del desktop, D-036): un meta-articolo
+// già attivo altrove non ha una voce dormiente da mostrare qui — senza
+// questo non c'era modo, da mobile, di selezionarne una seconda
+// istanza diversa (es. Banane gialle + Banane rosse) semplicemente
+// sfogliando, solo scrivendo di nuovo il nome in "Crea".
+function renderPoolMetaAttivo(metaId, nome) {
+  const container = document.createElement('div');
+  container.className = 'pool-group';
+
+  const row = document.createElement('div');
+  row.className = 'pool-row';
+  const name = document.createElement('span');
+  name.className = 'r-name';
+  name.textContent = nome;
+  const tag = document.createElement('span');
+  tag.className = 'pool-row-tag';
+  tag.textContent = 'già nel carrello — tocca per una 2ª istanza';
+  row.append(name, tag);
+  row.addEventListener('click', async () => {
+    if (!confirm(`Creare una seconda istanza di "${nome}"?`)) return;
+    const nuovaId = await createListItem(currentListId, metaId);
+    if (nuovaId) {
+      const ok = await updateListItem(nuovaId, { status: 'NEL_CARRELLO' });
+      if (ok) {
+        await refreshLista();
+        poolSheet.classList.remove('open');
+      }
+    }
+  });
+  container.appendChild(row);
+  return container;
+}
+
 function renderPool() {
   const query = poolSearchEl.value.trim().toLowerCase();
-  const dormienti = allItems.filter(
-    (i) => i.status === 'DA_ACQUISTARE' && (!query || (i.meta_articles?.name ?? '').toLowerCase().includes(query))
-  );
+  const mostraTutti = poolMostraTuttiEl.checked;
 
+  const dormienti = allItems.filter((i) => i.status === 'DA_ACQUISTARE');
   const gruppi = new Map();
   for (const item of dormienti) {
     const metaId = item.meta_articles?.id;
@@ -486,15 +521,38 @@ function renderPool() {
     gruppi.get(metaId).push(item);
   }
 
+  const righe = [];
+  for (const istanze of gruppi.values()) {
+    const nome = istanze[0].meta_articles?.name ?? '';
+    if (query && !nome.toLowerCase().includes(query)) continue;
+    righe.push({ nome, el: renderPoolGroup(istanze) });
+  }
+
+  if (mostraTutti) {
+    const attivi = new Map();
+    for (const item of allItems) {
+      if (item.status !== 'NEL_CARRELLO' && item.status !== 'ACQUISTATO') continue;
+      const metaId = item.meta_articles?.id;
+      if (gruppi.has(metaId) || attivi.has(metaId)) continue; // già mostrato sopra
+      attivi.set(metaId, item.meta_articles?.name ?? '');
+    }
+    for (const [metaId, nome] of attivi) {
+      if (query && !nome.toLowerCase().includes(query)) continue;
+      righe.push({ nome, el: renderPoolMetaAttivo(metaId, nome) });
+    }
+  }
+
+  righe.sort((a, b) => a.nome.localeCompare(b.nome, 'it'));
+
   poolRowsEl.innerHTML = '';
-  if (gruppi.size === 0) {
+  if (righe.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'empty-hint';
     empty.textContent = 'Nessuna voce in pianificazione.';
     poolRowsEl.appendChild(empty);
     return;
   }
-  for (const istanze of gruppi.values()) poolRowsEl.appendChild(renderPoolGroup(istanze));
+  for (const riga of righe) poolRowsEl.appendChild(riga.el);
 }
 
 poolSearchEl.addEventListener('input', renderPool);

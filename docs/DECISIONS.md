@@ -697,3 +697,14 @@ Implementazione: `app/mobile.js` (`renderPoolGroup`, sostituisce
 `.pool-variante-row`). Il desktop non ha un pool equivalente da D-036
 (usa il browser a colonne, che è già "meta prima, dettaglio dopo" per
 natura) — nessuna modifica necessaria lì.
+
+**Addendum**: mancava ancora un pezzo di parità col desktop — "Mostra
+tutti". Un meta-articolo già attivo (Nel carrello/Acquistato) non ha
+una voce dormiente da mostrare nel pool, quindi non c'era modo di
+selezionarne una seconda istanza sfogliando, solo scrivendo di nuovo
+il nome in "Crea" (con conferma). Aggiunta la stessa checkbox "Mostra
+tutti" del desktop: quando attiva, il pool include anche i
+meta-articoli già attivi (etichettati "già nel carrello — tocca per
+una 2ª istanza"), mescolati in ordine alfabetico con quelli
+dormienti — un meta con entrambi (dormiente E attivo, es. "Birra")
+compare una sola volta, dalla sua voce dormiente, senza duplicati.
