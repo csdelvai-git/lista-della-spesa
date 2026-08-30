@@ -435,8 +435,18 @@ ul {
   padding: 0.35rem 0.6rem;
 }
 
-.coda-foto-suggerimento {
-  font-style: italic;
+.coda-foto-ai-box {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.coda-foto-ai-box p {
+  margin: 0;
 }
 
 #relations-container ul li,

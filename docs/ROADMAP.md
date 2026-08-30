@@ -201,8 +201,19 @@ esplicito, non come sviluppo autonomo di funzionalità future.
 Implementato (`supabase/functions/analizza-cartellino/`,
 `app/js/aiCartellino.js`, bottone in `app/app.js`) e **deployato**
 (secret `ANTHROPIC_API_KEY` impostato, function attiva su Supabase,
-verificata end-to-end con una chiamata di test). Non ancora provato
-con una foto reale di cartellino dall'app.
+verificata end-to-end con una chiamata di test).
+
+Primo giro di prove con foto reali, correzioni: - input foto senza
+`capture="environment"` (apriva solo la fotocamera, impediva di
+scegliere foto già in libreria); - creare un supermercato lo rende
+subito selezionabile nelle card della coda, senza ricostruirle (si
+perderebbero prezzo/dati già inseriti sulle altre foto in coda); -
+prezzo/unità normalizzato (D-007, colonna già esistente ma non
+ancora collegata) ora editabile e salvato con "Carica", pre-riempito
+dall'AI se leggibile; - riquadro di revisione AI più leggibile (nome
+prodotto suggerito ben separato, nota esplicita che va verificato
+prima di caricare — resta solo informativo, nessun campo lo salva,
+D-005).
 
 Rimandato: - il resto della Fase 4 (suggerimenti, gestione
 incertezza su più campioni); - la modalità "barcode + scontrino"

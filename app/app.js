@@ -139,6 +139,33 @@ async function refreshRilevazioni() {
 
 let codaFotoObjectUrls = [];
 
+// Riferimenti alle select supermercato di tutte le card attualmente in
+// pagina: creare un nuovo supermercato (pannello più sotto) deve
+// renderlo subito selezionabile qui senza ricostruire l'intera coda
+// (si perderebbero prezzo/dati già inseriti sulle altre foto).
+let codaFotoSelectRefs = [];
+
+function popolaSelectSupermercato(select, supermarkets) {
+  const valorePrecedente = select.value;
+  select.innerHTML = '<option value="" disabled selected>Supermercato</option>';
+  for (const sm of supermarkets) {
+    const option = document.createElement('option');
+    option.value = sm.id;
+    option.textContent = sm.name;
+    select.appendChild(option);
+  }
+  if (supermarkets.some((sm) => sm.id === valorePrecedente)) {
+    select.value = valorePrecedente;
+  }
+}
+
+async function refreshCodaFotoSupermercati() {
+  const supermarkets = await fetchSupermarkets();
+  for (const select of codaFotoSelectRefs) {
+    popolaSelectSupermercato(select, supermarkets);
+  }
+}
+
 function renderCodaFotoItem(item, supermarkets) {
   const card = document.createElement('div');
   card.className = 'coda-foto-item';
@@ -154,13 +181,8 @@ function renderCodaFotoItem(item, supermarkets) {
   meta.textContent = `Scattata: ${new Date(item.capturedAt).toLocaleString('it-IT')}`;
 
   const selectSupermercato = document.createElement('select');
-  selectSupermercato.innerHTML = '<option value="" disabled selected>Supermercato</option>';
-  for (const sm of supermarkets) {
-    const option = document.createElement('option');
-    option.value = sm.id;
-    option.textContent = sm.name;
-    selectSupermercato.appendChild(option);
-  }
+  popolaSelectSupermercato(selectSupermercato, supermarkets);
+  codaFotoSelectRefs.push(selectSupermercato);
 
   const inputPrezzo = document.createElement('input');
   inputPrezzo.type = 'number';
@@ -168,9 +190,27 @@ function renderCodaFotoItem(item, supermarkets) {
   inputPrezzo.min = '0';
   inputPrezzo.placeholder = 'Prezzo confezione (€)';
 
-  const suggerimentoAi = document.createElement('span');
-  suggerimentoAi.className = 'subtitle coda-foto-suggerimento';
-  suggerimentoAi.hidden = true;
+  // Prezzo/unità normalizzato (D-007): opzionale, editabile, pre-riempito
+  // dall'AI se leggibile sul cartellino — non richiesto per "Carica".
+  const inputPrezzoUnita = document.createElement('input');
+  inputPrezzoUnita.type = 'number';
+  inputPrezzoUnita.step = '0.01';
+  inputPrezzoUnita.min = '0';
+  inputPrezzoUnita.placeholder = 'Prezzo/unità (opz.)';
+
+  const inputUnita = document.createElement('input');
+  inputUnita.type = 'text';
+  inputUnita.placeholder = 'unità (kg, l…)';
+  inputUnita.maxLength = 10;
+
+  // Riquadro di revisione AI (D-006: Acquisizione -> Proposta ->
+  // Revisione -> Conferma): il nome prodotto è solo un suggerimento
+  // informativo, non c'è ancora un campo dove salvarlo (D-005, nessuna
+  // classificazione qui) — prezzo e unità normalizzati invece sono
+  // editabili sopra e vengono salvati con "Carica".
+  const riquadroAi = document.createElement('div');
+  riquadroAi.className = 'coda-foto-ai-box';
+  riquadroAi.hidden = true;
 
   const btnAnalizza = creaBottoneAzione('Analizza (AI)', async () => {
     btnAnalizza.disabled = true;
@@ -183,6 +223,12 @@ function renderCodaFotoItem(item, supermarkets) {
     if (risultato.prezzo_confezione != null) {
       inputPrezzo.value = risultato.prezzo_confezione;
     }
+    if (risultato.prezzo_normalizzato != null) {
+      inputPrezzoUnita.value = risultato.prezzo_normalizzato;
+    }
+    if (risultato.unita_normalizzata) {
+      inputUnita.value = risultato.unita_normalizzata;
+    }
     if (risultato.supermercato_suggerito) {
       const suggerito = risultato.supermercato_suggerito.toLowerCase();
       const match = [...selectSupermercato.options].find((opt) =>
@@ -192,15 +238,25 @@ function renderCodaFotoItem(item, supermarkets) {
       if (match) selectSupermercato.value = match.value;
     }
 
-    const dettagli = [];
-    if (risultato.nome_prodotto_suggerito) dettagli.push(`"${risultato.nome_prodotto_suggerito}"`);
-    if (risultato.prezzo_normalizzato != null && risultato.unita_normalizzata) {
-      dettagli.push(`€${risultato.prezzo_normalizzato}/${risultato.unita_normalizzata}`);
+    riquadroAi.innerHTML = '';
+    if (risultato.nome_prodotto_suggerito) {
+      const riga = document.createElement('p');
+      const etichetta = document.createElement('strong');
+      etichetta.textContent = 'Nome prodotto letto dall’AI: ';
+      const valore = document.createElement('span');
+      valore.textContent = risultato.nome_prodotto_suggerito;
+      riga.append(etichetta, valore);
+      riquadroAi.appendChild(riga);
+    } else {
+      const riga = document.createElement('p');
+      riga.textContent = 'Nessun dato leggibile su questa foto.';
+      riquadroAi.appendChild(riga);
     }
-    suggerimentoAi.textContent = dettagli.length
-      ? `AI: ${dettagli.join(' — ')} (verifica prima di caricare)`
-      : 'AI: nessun dato leggibile su questa foto.';
-    suggerimentoAi.hidden = false;
+    const nota = document.createElement('p');
+    nota.className = 'subtitle';
+    nota.textContent = 'Controlla e correggi i campi sopra prima di caricare — il nome prodotto è solo un suggerimento, non viene salvato.';
+    riquadroAi.appendChild(nota);
+    riquadroAi.hidden = false;
   });
 
   const btnCarica = creaBottoneAzione('Carica', async () => {
@@ -217,6 +273,8 @@ function renderCodaFotoItem(item, supermarkets) {
       articleId: null,
       formatId: null,
       packagePrice: Number(price),
+      normalizedPrice: inputPrezzoUnita.value ? Number(inputPrezzoUnita.value) : null,
+      normalizedUnit: inputUnita.value.trim() || null,
     });
     if (!priceObservationId) {
       btnCarica.disabled = false;
@@ -249,9 +307,13 @@ function renderCodaFotoItem(item, supermarkets) {
   form.className = 'coda-foto-form';
   form.append(selectSupermercato, inputPrezzo, btnAnalizza, btnCarica, btnElimina);
 
+  const rigaNormalizzato = document.createElement('div');
+  rigaNormalizzato.className = 'coda-foto-form';
+  rigaNormalizzato.append(inputPrezzoUnita, inputUnita);
+
   const corpo = document.createElement('div');
   corpo.className = 'coda-foto-corpo';
-  corpo.append(meta, form, suggerimentoAi);
+  corpo.append(meta, form, rigaNormalizzato, riquadroAi);
 
   card.append(img, corpo);
   return card;
@@ -260,6 +322,7 @@ function renderCodaFotoItem(item, supermarkets) {
 async function renderCodaFoto() {
   for (const url of codaFotoObjectUrls) URL.revokeObjectURL(url);
   codaFotoObjectUrls = [];
+  codaFotoSelectRefs = [];
 
   const items = await listPendingPhotos();
   codaFotoList.innerHTML = '';
@@ -295,6 +358,7 @@ supermarketForm.addEventListener('submit', async (event) => {
   if (ok) {
     supermarketNameInput.value = '';
     await refreshSupermarkets();
+    await refreshCodaFotoSupermercati();
   }
 });
 

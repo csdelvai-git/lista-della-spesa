@@ -35,7 +35,14 @@ export async function fetchPriceObservationsForFormat(formatId) {
 // alla coda foto (Fase 3.2, D-030) per collegarci l'immagine subito
 // dopo. I chiamanti che vogliono solo sapere se è andata bene possono
 // continuare a trattare il valore come truthy/falsy.
-export async function createPriceObservation({ supermarketId, articleId, formatId, packagePrice }) {
+export async function createPriceObservation({
+  supermarketId,
+  articleId,
+  formatId,
+  packagePrice,
+  normalizedPrice,
+  normalizedUnit,
+}) {
   const { data, error } = await supabase
     .from('price_observations')
     .insert({
@@ -43,6 +50,8 @@ export async function createPriceObservation({ supermarketId, articleId, formatI
       article_id: articleId ?? null,
       format_id: formatId ?? null,
       package_price: packagePrice,
+      normalized_price: normalizedPrice ?? null,
+      normalized_unit: normalizedUnit ?? null,
     })
     .select('id')
     .single();
